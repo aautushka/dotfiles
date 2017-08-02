@@ -17,6 +17,11 @@ execute pathogen#infect()
 syntax on
 filetype plugin indent on
 
+" use four spaces for indentation:w
+set tabstop=4
+set shiftwidth=4
+set expandtab
+
 
 set nocompatible              " be iMproved, required
 filetype off                  " required
@@ -29,16 +34,21 @@ call vundle#begin()
 
  " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
-Plugin 'morhetz/gruvbox'
+Plugin 'morhetz/gruvbox' " color scheme
 Plugin 'octol/vim-cpp-enhanced-highlight'
-Plugin 'dracula/vim'
+Plugin 'dracula/vim' " color scheme
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-Plugin 'w0ng/vim-hybrid'
-Plugin 'sickill/vim-monokai'
+Plugin 'w0ng/vim-hybrid' " color scheme
+Plugin 'sickill/vim-monokai' " color scheme
 Plugin 'mkitt/tabline.vim'
-Plugin 'git://github.com/tpope/vim-sensible.git'
-" Plugin 'alteration/solarized'
+Plugin 'tpope/vim-sensible.git'
+Plugin 'junegunn/rainbow_parentheses.vim' " Rainbow parentheses 
+Plugin 'sjl/badwolf' " color scheme 
+Plugin 'jnurmine/Zenburn' " color scheme
+Plugin 'romainl/Apprentice' " color scheme
+Plugin 'junegunn/seoul256.vim' " color sheme
+Plugin 'junegunn/vim-slash' " clear search highlight when cursor is moved
 
 " The following are examples of different formats supported.
 " Keep Plugin commands between vundle#begin/end.
@@ -74,23 +84,16 @@ filetype plugin indent on    " required
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
 
+" choose and configure color scheme
+let g:seoul256_background = 235
+colorscheme apprentice
+set background=dark
+
 " nmap <S-Enter> O<Esc>
 nmap <CR> i<CR><Esc>
 
-" set termguicolors
-" colorscheme dracula
-" colorscheme gruvbox
-colorscheme monokai
-" colorscheme hybrid
-
-" this is the solarized color scheme
-set background=dark
-" colorscheme solarized
-
 " go to last active tab
 au TabLeave * let g:lasttab = tabpagenr()
-nnoremap <silent> <c-l> :exe "tabn ".g:lasttab<cr>
-vnoremap <silent> <c-l> :exe "tabn ".g:lasttab<cr>
 nnoremap <c-j> :tabprevious<CR>
 nnoremap <c-k> :tabnext<CR>
 
@@ -104,3 +107,19 @@ noremap <Left> <Nop>
 noremap <Right> <Nop>
 
 runtime macros/matchit.vim
+
+" redraw vim background 
+set t_ut=
+
+" highlight matched text, effective when doing a search
+set hlsearch
+
+" highlight current line
+set cursorline
+
+" allow at least 11 lines to be visible when scrolling
+set scrolloff=11
+
+" toggle rainbow parenthesis
+autocmd BufReadPost * RainbowParentheses
+
