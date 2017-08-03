@@ -130,3 +130,6 @@ let g:ctrlp_prompt_mappings = {
     \ 'AcceptSelection("e")' : ['<2-LeftMouse>'],
     \ 'AcceptSelection("t")' : ['<cr>'],
     \ }
+
+" open file under cursor in a new tab
+noremap <c-t> <c-w>gf
