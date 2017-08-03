@@ -125,3 +125,8 @@ set scrolloff=11
 " toggle rainbow parenthesis
 autocmd BufReadPost * RainbowParentheses
 
+" ctrlp configuration - open file in a new tab
+let g:ctrlp_prompt_mappings = {
+    \ 'AcceptSelection("e")' : ['<2-LeftMouse>'],
+    \ 'AcceptSelection("t")' : ['<cr>'],
+    \ }
