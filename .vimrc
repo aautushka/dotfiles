@@ -35,20 +35,22 @@ call vundle#begin()
  " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'morhetz/gruvbox' " color scheme
-Plugin 'octol/vim-cpp-enhanced-highlight'
+Plugin 'octol/vim-cpp-enhanced-highlight' " C++ syntax highlighting
 Plugin 'dracula/vim' " color scheme
-Plugin 'vim-airline/vim-airline'
-Plugin 'vim-airline/vim-airline-themes'
+Plugin 'vim-airline/vim-airline' " status line
+Plugin 'vim-airline/vim-airline-themes' " status line themes
 Plugin 'w0ng/vim-hybrid' " color scheme
 Plugin 'sickill/vim-monokai' " color scheme
-Plugin 'mkitt/tabline.vim'
-Plugin 'tpope/vim-sensible.git'
+Plugin 'mkitt/tabline.vim' " tab labels
+Plugin 'tpope/vim-sensible.git' " some vim default
 Plugin 'junegunn/rainbow_parentheses.vim' " Rainbow parentheses 
 Plugin 'sjl/badwolf' " color scheme 
 Plugin 'jnurmine/Zenburn' " color scheme
 Plugin 'romainl/Apprentice' " color scheme
 Plugin 'junegunn/seoul256.vim' " color sheme
 Plugin 'junegunn/vim-slash' " clear search highlight when cursor is moved
+Plugin 'junegunn/indentLine' " display identation levels
+Plugin 'kien/ctrlp.vim' " fuzzy file matcher, open with <c-p>
 
 " The following are examples of different formats supported.
 " Keep Plugin commands between vundle#begin/end.
