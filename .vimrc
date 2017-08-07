@@ -113,9 +113,6 @@ runtime macros/matchit.vim
 " redraw vim background 
 set t_ut=
 
-" highlight matched text, effective when doing a search
-set hlsearch
-
 " highlight current line
 set cursorline
 
@@ -133,3 +130,10 @@ let g:ctrlp_prompt_mappings = {
 
 " open file under cursor in a new tab
 noremap <c-t> <c-w>gf
+
+" comment out block of code by pressing twice on slash key in visual mode
+vmap // :s:^://:<CR>
+vmap \\ :s:^//::<CR>
+vmap " :s/^/" /<CR>
+vmap ' :s/^" //<CR>
+
