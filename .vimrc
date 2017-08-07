@@ -51,6 +51,7 @@ Plugin 'junegunn/seoul256.vim' " color sheme
 Plugin 'junegunn/vim-slash' " clear search highlight when cursor is moved
 Plugin 'junegunn/indentLine' " display identation levels
 Plugin 'kien/ctrlp.vim' " fuzzy file matcher, open with <c-p>
+Plugin 'tpope/vim-surround'
 
 " The following are examples of different formats supported.
 " Keep Plugin commands between vundle#begin/end.
