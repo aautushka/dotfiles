@@ -1,6 +1,6 @@
 if &term =~ "xterm"
   " 256 colors
-  let &t_Co = 256
+
   " restore screen after quitting
   let &t_ti = "\<Esc>7\<Esc>[r\<Esc>[?47h"
   let &t_te = "\<Esc>[?47l\<Esc>8"
@@ -52,6 +52,7 @@ Plugin 'junegunn/vim-slash' " clear search highlight when cursor is moved
 Plugin 'junegunn/indentLine' " display identation levels
 Plugin 'kien/ctrlp.vim' " fuzzy file matcher, open with <c-p>
 Plugin 'tpope/vim-surround'
+Plugin 'christoomey/vim-tmux-navigator'
 
 " The following are examples of different formats supported.
 " Keep Plugin commands between vundle#begin/end.
@@ -138,3 +139,14 @@ vmap \\ :s:^//::<CR>
 vmap " :s/^/" /<CR>
 vmap ' :s/^" //<CR>
 
+set clipboard=unnamedplus
+
+" navigate splits like a sane person
+nnoremap <c-j> <c-w>j
+nnoremap <c-k> <c-w>k
+nnoremap <c-h> <c-w>h
+nnoremap <c-l> <c-w>l
+
+" more naturan splitting
+set splitbelow
+set splitright
