@@ -98,8 +98,8 @@ nmap <CR> i<CR><Esc>
 
 " go to last active tab
 au TabLeave * let g:lasttab = tabpagenr()
-nnoremap <c-j> :tabprevious<CR>
-nnoremap <c-k> :tabnext<CR>
+nnoremap H :tabprevious<CR>
+nnoremap L :tabnext<CR>
 
 
 let g:airline#extensions#tabline#fnamemod = ':t'
@@ -139,7 +139,7 @@ vmap \\ :s:^//::<CR>
 vmap " :s/^/" /<CR>
 vmap ' :s/^" //<CR>
 
-set clipboard=unnamedplus
+" set clipboard=unnamedplus
 
 " navigate splits like a sane person
 nnoremap <c-j> <c-w>j

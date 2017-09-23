@@ -2,12 +2,13 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-  export ZSH=/home/aautushka/.oh-my-zsh
+export ZSH=/Users/marina/.oh-my-zsh
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME="robbyrussell"
+# ZSH_THEME="agnoster"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -84,10 +85,21 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+# use vim key bindings
 bindkey -v
+
+# history and grep
+alias hist="history"
+alias hgrep="history | grep"
 alias psgrep="ps -Af | grep --color"
+
+# edit my dotfiles
+alias vimrc="vim ~/.vimrc"
+alias zshrc="vim ~/.zshrc"
+alias tmuxrc="vim ~/.tmux.conf"
+
+# git commands
 alias st="git status -s"
-alias hgrep ="history | grep --color"
 
 #This is based on: https://github.com/ranger/ranger/blob/master/examples/bash_automatic_cd.sh
 #Paste this into your .zshrc:
@@ -105,3 +117,4 @@ bindkey -s '^O' 'ranger-cd\n'
 
 # do ranger-cd by default
 alias ranger="ranger-cd"
+alias rr="ranger-cd"
