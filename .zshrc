@@ -103,7 +103,8 @@ alias st="git status -s"
 
 #This is based on: https://github.com/ranger/ranger/blob/master/examples/bash_automatic_cd.sh
 #Paste this into your .zshrc:
-function ranger-cd {
+function ranger-cd 
+{
     tempfile="$(mktemp -t tmp.XXXXXX)"
     ranger --choosedir="$tempfile" "${@:-$(pwd)}"
     test -f "$tempfile" &&
@@ -118,3 +119,16 @@ bindkey -s '^O' 'ranger-cd\n'
 # do ranger-cd by default
 alias ranger="ranger-cd"
 alias rr="ranger-cd"
+
+# mp3 commands
+function convert-m4b
+{
+    newname=$(echo $1 | sed s/m4b$/mp3/)
+    ffmpeg -i "$1" -acodec libmp3lame "$newname"
+}
+
+function split-mp3
+{
+    newname=$(echo $1 | sed s/\.mp3$/-%03d\.mp3/)
+    ffmpeg -i "$1" -f segment -segment_time 1800 -c copy "$newname"
+}
