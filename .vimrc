@@ -53,6 +53,7 @@ Plugin 'junegunn/indentLine' " display identation levels
 Plugin 'kien/ctrlp.vim' " fuzzy file matcher, open with <c-p>
 Plugin 'tpope/vim-surround'
 Plugin 'christoomey/vim-tmux-navigator'
+Plugin 'benmills/vimux' " vim-tmux integration
 
 " The following are examples of different formats supported.
 " Keep Plugin commands between vundle#begin/end.
@@ -147,6 +148,10 @@ nnoremap <c-k> <c-w>k
 nnoremap <c-h> <c-w>h
 nnoremap <c-l> <c-w>l
 
-" more naturan splitting
+" more natural splitting
 set splitbelow
 set splitright
+
+" vimux key bindings
+nnoremap <Space>r :VimuxPromptCommand<CR>
+nnoremap <Space>j :VimuxRunLastCommand<CR>
