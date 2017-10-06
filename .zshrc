@@ -101,6 +101,7 @@ alias tmuxrc="vim ~/.tmux.conf"
 # git commands
 alias st="git status -s"
 
+
 #This is based on: https://github.com/ranger/ranger/blob/master/examples/bash_automatic_cd.sh
 #Paste this into your .zshrc:
 function ranger-cd 
@@ -119,6 +120,12 @@ bindkey -s '^O' 'ranger-cd\n'
 # do ranger-cd by default
 alias ranger="ranger-cd"
 alias rr="ranger-cd"
+alias mypstree="pstree -s $$"
+alias isranger="mypstree | grep --color ranger"
+
+# convenience keys
+alias c="clear"
+alias r="source ~/.zshrc"
 
 # mp3 commands
 function convert-m4b
@@ -131,4 +138,10 @@ function split-mp3
 {
     newname=$(echo $1 | sed s/\.mp3$/-%03d\.mp3/)
     ffmpeg -i "$1" -f segment -segment_time 1800 -c copy "$newname"
+}
+
+# docker commands
+function docker-rm-all
+{
+    docker rm -f $(docker ps -a -q)
 }
