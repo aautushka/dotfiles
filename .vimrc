@@ -54,6 +54,7 @@ Plugin 'kien/ctrlp.vim' " fuzzy file matcher, open with <c-p>
 Plugin 'tpope/vim-surround'
 Plugin 'christoomey/vim-tmux-navigator'
 Plugin 'benmills/vimux' " vim-tmux integration
+Plugin 'gabesoft/vim-ags' " integrates the silver searcher 
 
 " The following are examples of different formats supported.
 " Keep Plugin commands between vundle#begin/end.
