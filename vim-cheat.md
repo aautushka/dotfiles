@@ -40,8 +40,8 @@
 **f F** find after cursor, find before cursor  
 **t T** find after cursor, find before cursor   
 **; ,** next match, previous match  
-__g*__ seach the work under cursor
-__# *__find previous word under cursor, find next word under cursor
+__g__ seach the work under cursor
+__#__find previous word under cursor, find next word under cursor
 **%** jump to matching brace
 
 
