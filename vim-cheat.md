@@ -17,7 +17,7 @@
 **'\[** jump to first char of just changed text  
 **^m** goto middle screen  
 **| 3|** move column 0, move column 3  
-**gD** got to the very first occurence of the word under cursor 
+**gD** got to the very first occurence of the word under cursor   
 **\[\[ \]\]** move to beginning of this function {, next function { 
 **gd** go to first local occurence of the word under cursor 
 **gf** open file under cursor 
