@@ -18,6 +18,8 @@
 **^m** goto middle screen  
 **| 3|** move column 0, move column 3  
 **[[ ]]** move to beginning of this function {, next function {
+**gd** go to first occurence of the word under cursor
+**gf** open file under cursor
 
 ## modes
 **i** insert mode (i a s)
