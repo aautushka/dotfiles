@@ -26,7 +26,7 @@
 **v** visual mode (v V ^v)
 **n** normal mode  
 **c** command mode
-**<ESC\> ^c ^[** exit insert mode  
+__<ESC\> ^c ^\[__ exit insert mode  
 
 ## scrolling
 **zz** center screen  
@@ -40,8 +40,8 @@
 **f F** find after cursor, find before cursor  
 **t T** find after cursor, find before cursor   
 **; ,** next match, previous match  
-__g__ seach the work under cursor
-__#__find previous word under cursor, find next word under cursor
+__g*__ seach the work under cursor
+__#*__ find previous word under cursor, find next word under cursor
 **%** jump to matching brace
 __#*__ find previous word under cursor, find next word under cursor
 
