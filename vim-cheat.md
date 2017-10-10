@@ -41,9 +41,11 @@ __<ESC\> ^c ^\[__ exit insert mode
 **t T** find after cursor, find before cursor   
 **; ,** next match, previous match  
 __g*__ seach the work under cursor
+
 __#*__ find previous word under cursor, find next word under cursor
+
 **%** jump to matching brace
-__#*__ find previous word under cursor, find next word under cursor
+
 
 
 
