@@ -140,6 +140,15 @@ __#\*__ find previous word under cursor, find next word under cursor
 **c** change  
 **d** delete  
 
+## folds
+**zo** open a fold under cursor  
+**zO** open all folds under cursor  
+**zc** close a fold under cursor  
+**zm** increase foldlevel by one  
+**zM** close all open folds  
+**zr** decrese foldevele by one  
+**zR** sets foldlevel to zero, all folds will be open  
+
 ## help
 **: vimtutor**  
 
@@ -147,3 +156,4 @@ __#\*__ find previous word under cursor, find next word under cursor
 https://rumorscity.com/wp-content/uploads/2014/08/10-Best-VIM-Cheat-Sheet-01.jpg  
 https://rumorscity.com/wp-content/uploads/2014/08/10-Best-VIM-Cheat-Sheet-02.jpg  
 https://rumorscity.com/wp-content/uploads/2014/08/10-Best-VIM-Cheat-Sheet-05.jpg  
+
