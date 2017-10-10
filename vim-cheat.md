@@ -14,10 +14,10 @@
 **H L** screen start, screen end  
 **'m \`m** jump to mark  
 **''** jump to last jump
-**'[** jump to first char of just changed text  
+**'\[** jump to first char of just changed text  
 **^m** goto middle screen  
 **| 3|** move column 0, move column 3  
-**[[ ]]** move to beginning of this function {, next function {
+**\[\[ \]\]** move to beginning of this function {, next function {
 **gd** go to first occurence of the word under cursor
 **gf** open file under cursor
 
@@ -41,9 +41,7 @@ __<ESC\> ^c ^\[__ exit insert mode
 **t T** find after cursor, find before cursor   
 **; ,** next match, previous match  
 __g*__ seach the work under cursor
-
 __#*__ find previous word under cursor, find next word under cursor
-
 **%** jump to matching brace
 
 
