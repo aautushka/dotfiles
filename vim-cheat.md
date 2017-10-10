@@ -23,10 +23,10 @@
 **gf** open file under cursor  
 
 ## modes
-**i** insert mode (i a s)
-**v** visual mode (v V ^v)
+**i** insert mode (i a s)  
+**v** visual mode (v V ^v)  
 **n** normal mode  
-**c** command mode
+**c** command mode  
 __<ESC\> ^c ^\[__ exit insert mode  
 
 ## scrolling
