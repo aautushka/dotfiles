@@ -1,6 +1,6 @@
 if &term =~ "xterm"
   " 256 colors
-
+  let &t_Co = 256
   " restore screen after quitting
   let &t_ti = "\<Esc>7\<Esc>[r\<Esc>[?47h"
   let &t_te = "\<Esc>[?47l\<Esc>8"
@@ -48,47 +48,20 @@ Plugin 'sjl/badwolf' " color scheme
 Plugin 'jnurmine/Zenburn' " color scheme
 Plugin 'romainl/Apprentice' " color scheme
 Plugin 'junegunn/seoul256.vim' " color sheme
-Plugin 'junegunn/vim-slash' " clear search highlight when cursor is moved
 Plugin 'junegunn/indentLine' " display identation levels
 Plugin 'kien/ctrlp.vim' " fuzzy file matcher, open with <c-p>
 Plugin 'tpope/vim-surround'
 Plugin 'christoomey/vim-tmux-navigator'
 Plugin 'benmills/vimux' " vim-tmux integration
 Plugin 'gabesoft/vim-ags' " integrates the silver searcher 
-
-" The following are examples of different formats supported.
-" Keep Plugin commands between vundle#begin/end.
-" plugin on GitHub repo
-" Plugin 'tpope/vim-fugitive'
-" plugin from http://vim-scripts.org/vim/scripts.html
-" Plugin 'L9'
-" Git plugin not hosted on GitHub
-" Plugin 'git://git.wincent.com/command-t.git'
-" git repos on your local machine (i.e. when working on your own plugin)
-" Plugin 'file:///home/gmarik/path/to/plugin'
-" The sparkup vim script is in a subdirectory of this repo called vim.
-" Pass the path to set the runtimepath properly.
-" Plugin 'rstacruz/sparkup', {'rtp': 'vim/'}
-" Install L9 and avoid a Naming conflict if you've already installed a
-" different version somewhere else.
-" Plugin 'ascenator/L9', {'name': 'newL9'}
+Plugin 'airblade/vim-gitgutter' " show git diff
+Plugin 'craigemery/vim-autotag' " automatically update tags
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 filetype plugin indent on    " required
 " To ignore plugin indent changes, instead use:
 "filetype plugin on
-
-" Brief help
-" :PluginList       - lists configured plugins
-" :PluginInstall    - installs plugins; append `!` to update or just
-" :PluginUpdate
-" :PluginSearch foo - searches for foo; append `!` to refresh local cache
-" :PluginClean      - confirms removal of unused plugins; append `!` to
-" auto-approve removal
-"
-" see :h vundle for more details or wiki for FAQ
-" Put your non-Plugin stuff after this line
 
 " choose and configure color scheme
 let g:seoul256_background = 235
@@ -107,10 +80,11 @@ nnoremap L :tabnext<CR>
 let g:airline#extensions#tabline#fnamemod = ':t'
 set number
 
-noremap <Up> <Nop>
-noremap <Down> <Nop>
-noremap <Left> <Nop>
-noremap <Right> <Nop>
+" disable arrow movement, resize splits instead
+noremap <Up> :resize +2<CR>
+noremap <Down> :resize -2<CR>
+noremap <Left> :vertical resize +2<CR>
+noremap <Right> :vertical resize -2<CR>
 
 runtime macros/matchit.vim
 
@@ -133,7 +107,8 @@ let g:ctrlp_prompt_mappings = {
     \ }
 
 " open file under cursor in a new tab
-noremap <c-t> <c-w>gf
+" disable for now since it interferes with ctags
+noremap <Space>o <c-w>gf
 
 " comment out block of code by pressing twice on slash key in visual mode
 vmap // :s:^://:<CR>
@@ -156,3 +131,19 @@ set splitright
 " vimux key bindings
 nnoremap <Space>r :VimuxPromptCommand<CR>
 nnoremap <Space>j :VimuxRunLastCommand<CR>
+
+nnoremap <c-o> :Ags 
+nnoremap <c-w> :w<CR>
+
+" highlight search results
+set hlsearch
+
+" configure folds
+set foldmethod=syntax
+set foldlevel=99
+
+" open definition in new tab
+nnoremap <c-N> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
+
+" insert mode
+imap <c-d> <Left><Del>
