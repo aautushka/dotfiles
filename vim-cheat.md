@@ -149,6 +149,10 @@ __#\*__ find previous word under cursor, find next word under cursor
 **zr** decrese foldevele by one  
 **zR** sets foldlevel to zero, all folds will be open  
 
+## tags 
+**c-]** go to definition  
+**c-t** go back  
+
 ## help
 **: vimtutor**  
 
