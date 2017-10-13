@@ -56,6 +56,13 @@ Plugin 'benmills/vimux' " vim-tmux integration
 Plugin 'gabesoft/vim-ags' " integrates the silver searcher 
 Plugin 'airblade/vim-gitgutter' " show git diff
 Plugin 'craigemery/vim-autotag' " automatically update tags
+Plugin 'easymotion/vim-easymotion' 
+Plugin 'haya14busa/incsearch.vim' " incrementally hightligh all searches
+Plugin 'haya14busa/incsearch-easymotion.vim'
+Plugin 'tpope/vim-unimpaired' " some usefule key bindings
+Plugin 'tpope/vim-commentary' " comment code
+Plugin 'tpope/vim-repeat' " . to work with plugins
+Plugin 'tpope/vim-sleuth' 
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -129,11 +136,12 @@ set splitbelow
 set splitright
 
 " vimux key bindings
-nnoremap <Space>r :VimuxPromptCommand<CR>
-nnoremap <Space>j :VimuxRunLastCommand<CR>
+nnoremap <Leader>r :VimuxPromptCommand<CR>
+nnoremap <Leader>j :VimuxRunLastCommand<CR>
+nnoremap <Leader>c :VimuxInterruptRunner<CR>
 
 nnoremap <c-o> :Ags 
-nnoremap <c-w> :w<CR>
+" nnoremap <c-w> :w<CR>
 
 " highlight search results
 set hlsearch
@@ -147,3 +155,25 @@ nnoremap <c-N> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
 
 " insert mode
 imap <c-d> <Left><Del>
+
+" Ags: ignore ctags' tags file
+let g:ags_agexe='ag --ignore=tags'
+
+" replace standard search with incsearch.vim
+map / <Plug>(incsearch-forward)
+map ? <Plug>(incsearch-backward)
+map g/ <Plug>(incsearch-stay)
+
+" incsearch-easymotion.vim 
+map z/ <Plug>(incsearch-easymotion-/)
+map z? <Plug>(incsearch-easymotion-?)
+map zg/ <Plug>(incsearch-easymotion-stay)
+
+" navigate in a wrapped line
+nmap j gj
+nmap k gk
+
+" easymotion configuration
+nmap <Leader>s <Plug>(easymotion-s2)
+nmap <Leader>t <Plug>(easymotion-t2)
+nmap <Leader>/ <Plug>(easymotion-sn)
