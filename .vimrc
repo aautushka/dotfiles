@@ -49,7 +49,6 @@ Plugin 'jnurmine/Zenburn' " color scheme
 Plugin 'romainl/Apprentice' " color scheme
 Plugin 'junegunn/seoul256.vim' " color sheme
 Plugin 'junegunn/indentLine' " display identation levels
-Plugin 'kien/ctrlp.vim' " fuzzy file matcher, open with <c-p>
 Plugin 'tpope/vim-surround'
 Plugin 'christoomey/vim-tmux-navigator'
 Plugin 'benmills/vimux' " vim-tmux integration
@@ -63,6 +62,8 @@ Plugin 'tpope/vim-unimpaired' " some usefule key bindings
 Plugin 'tpope/vim-commentary' " comment code
 Plugin 'tpope/vim-repeat' " . to work with plugins
 Plugin 'tpope/vim-sleuth' 
+Plugin 'junegunn/fzf', {'dir': '~/.fzf', 'do': './install --all'}
+Plugin 'junegunn/fzf.vim' " fuzzy file matcher better than ctrlp
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -106,12 +107,6 @@ set scrolloff=11
 
 " toggle rainbow parenthesis
 autocmd BufReadPost * RainbowParentheses
-
-" ctrlp configuration - open file in a new tab
-let g:ctrlp_prompt_mappings = {
-    \ 'AcceptSelection("e")' : ['<2-LeftMouse>'],
-    \ 'AcceptSelection("t")' : ['<cr>'],
-    \ }
 
 " open file under cursor in a new tab
 " disable for now since it interferes with ctags
@@ -177,3 +172,6 @@ nmap k gk
 nmap <Leader>s <Plug>(easymotion-s2)
 nmap <Leader>t <Plug>(easymotion-t2)
 nmap <Leader>/ <Plug>(easymotion-sn)
+
+" fzf configuration
+nmap <c-p> :FZF<CR>
