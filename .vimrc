@@ -64,6 +64,8 @@ Plugin 'tpope/vim-repeat' " . to work with plugins
 Plugin 'tpope/vim-sleuth' 
 Plugin 'junegunn/fzf', {'dir': '~/.fzf', 'do': './install --all'}
 Plugin 'junegunn/fzf.vim' " fuzzy file matcher better than ctrlp
+Plugin 'tomasiser/vim-code-dark' " colorscheme codedark
+Plugin 'NLKNguyen/papercolor-theme' " colorscheme PaperColor
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -73,7 +75,7 @@ filetype plugin indent on    " required
 
 " choose and configure color scheme
 let g:seoul256_background = 235
-colorscheme apprentice
+colorscheme PaperColor
 set background=dark
 
 " nmap <S-Enter> O<Esc>
