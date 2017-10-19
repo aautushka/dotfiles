@@ -145,3 +145,73 @@ function docker-rm-all
 {
     docker rm -f $(docker ps -a -q)
 }
+
+function mkcd
+{
+    mkdir "$1"
+    cd "$1"
+}
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# cool fzf command from 
+# https://github.com/junegunn/fzf/wiki/examples
+# there's more on the link
+
+# vf - fuzzy open with vim from anywhere
+# ex: vf word1 word2 ... (even part of a file name)
+vf()
+{
+    local files
+    files=(${(f)"$(locate -Ai -0 $@ | grep -z -vE '~$' | fzf --read0 -0 -1 -m)"})
+    if [[ -n $files ]]
+    then
+        vim -- $files
+        print -l $files[1]
+    fi
+}
+
+# fe [FUZZY PATTERN] - Open the selected file with the default editor
+# - Bypass fuzzy finder if there's only one match (--select-1)
+# - Exit if there is no match (--exit-0)
+fe() 
+{
+    local files
+    IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+    [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+}
+
+# Modified version where you can press
+# - ^O to open with `open` command,
+# - ^E or Enter key to open with the $EDITOR
+fo()
+{
+    local out file key
+    IFS=$'\n' out=($(fzf-tmux --query="$1" --exit-0 --expect=ctrl-o,ctrl-e))
+    key=$(head -1 <<< "$out")
+    file=$(head -2 <<< "$out" | tail -1)
+    echo "hello $file"
+    if [ -n "$file" ]; then 
+        [ "$key" = ctrl-o ] && open "$file" || ${EDITOR:-vim} "$file"
+    fi
+}
+
+# fuzzy grep open via ag
+vg() 
+{
+    local file
+    file="$(ag --nobreak --noheading $@ | fzf -0 -1 | awk -F: '{print $1 " +" $2}')"
+    if [[ -n $file ]]
+    then
+        vim $file
+    fi
+}
+
+# fd - cd to selected directory
+fd()
+{
+    local dir
+    dir=$(find ${1:-.} -path '*/\.*' -prune \
+        -o -type d -print 2> /dev/null | fzf +m) && 
+    cd "$dir"
+}

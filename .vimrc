@@ -61,11 +61,16 @@ Plugin 'haya14busa/incsearch-easymotion.vim'
 Plugin 'tpope/vim-unimpaired' " some usefule key bindings
 Plugin 'tpope/vim-commentary' " comment code
 Plugin 'tpope/vim-repeat' " . to work with plugins
-Plugin 'tpope/vim-sleuth' 
+Plugin 'tpope/vim-sleuth' " heuristically set buffer options
 Plugin 'junegunn/fzf', {'dir': '~/.fzf', 'do': './install --all'}
 Plugin 'junegunn/fzf.vim' " fuzzy file matcher better than ctrlp
 Plugin 'tomasiser/vim-code-dark' " colorscheme codedark
 Plugin 'NLKNguyen/papercolor-theme' " colorscheme PaperColor
+Plugin 'kshenoy/vim-signature' " show marks automatically
+Plugin 'tpope/vim-fugitive' " git integration
+Plugin 'tpope/vim-endwise' 
+Plugin 'majutsushi/tagbar' " ctags viewer
+Plugin 'w0rp/ale'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -75,7 +80,7 @@ filetype plugin indent on    " required
 
 " choose and configure color scheme
 let g:seoul256_background = 235
-colorscheme PaperColor
+colorscheme apprentice
 set background=dark
 
 " nmap <S-Enter> O<Esc>
@@ -107,8 +112,6 @@ set cursorline
 " allow at least 11 lines to be visible when scrolling
 set scrolloff=11
 
-" toggle rainbow parenthesis
-autocmd BufReadPost * RainbowParentheses
 
 " open file under cursor in a new tab
 " disable for now since it interferes with ctags
@@ -177,3 +180,12 @@ nmap <Leader>/ <Plug>(easymotion-sn)
 
 " fzf configuration
 nmap <c-p> :FZF<CR>
+
+" rainbow parentheses
+let g:rainbow#pairs = [['(', ')'], ['[', ']'], ['{', '}']]
+autocmd BufReadPost * RainbowParentheses
+
+" tagbar config
+nmap <F8> :TagbarToggle<CR>
+
+syntax off
