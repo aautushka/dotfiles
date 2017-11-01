@@ -13,7 +13,6 @@ if &term =~ "xterm"
   endif
 endif
 
-execute pathogen#infect()
 syntax on
 filetype plugin indent on
 
@@ -34,23 +33,16 @@ call vundle#begin()
 
  " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
-Plugin 'morhetz/gruvbox' " color scheme
-Plugin 'octol/vim-cpp-enhanced-highlight' " C++ syntax highlighting
-Plugin 'dracula/vim' " color scheme
-Plugin 'vim-airline/vim-airline' " status line
-Plugin 'vim-airline/vim-airline-themes' " status line themes
-Plugin 'w0ng/vim-hybrid' " color scheme
-Plugin 'sickill/vim-monokai' " color scheme
-Plugin 'mkitt/tabline.vim' " tab labels
-Plugin 'tpope/vim-sensible.git' " some vim default
+" Plugin 'octol/vim-cpp-enhanced-highlight' " C++ syntax highlighting EATS CPU
+" Plugin 'vim-airline/vim-airline' " status line EATS CPU 
+" Plugin 'vim-airline/vim-airline-themes' " status line themes EATS CPU
+Plugin 'ap/vim-buftabline'
+Plugin 'tpope/vim-sensible.git' " some vim defaults
 Plugin 'junegunn/rainbow_parentheses.vim' " Rainbow parentheses 
-Plugin 'sjl/badwolf' " color scheme 
-Plugin 'jnurmine/Zenburn' " color scheme
 Plugin 'romainl/Apprentice' " color scheme
 Plugin 'junegunn/seoul256.vim' " color sheme
-Plugin 'junegunn/indentLine' " display identation levels
-Plugin 'tpope/vim-surround'
-Plugin 'christoomey/vim-tmux-navigator'
+" Plugin 'junegunn/indentLine' " display identation levels EATS CPU
+Plugin 'tpope/vim-surround' 
 Plugin 'benmills/vimux' " vim-tmux integration
 Plugin 'gabesoft/vim-ags' " integrates the silver searcher 
 Plugin 'airblade/vim-gitgutter' " show git diff
@@ -64,13 +56,13 @@ Plugin 'tpope/vim-repeat' " . to work with plugins
 Plugin 'tpope/vim-sleuth' " heuristically set buffer options
 Plugin 'junegunn/fzf', {'dir': '~/.fzf', 'do': './install --all'}
 Plugin 'junegunn/fzf.vim' " fuzzy file matcher better than ctrlp
-Plugin 'tomasiser/vim-code-dark' " colorscheme codedark
 Plugin 'NLKNguyen/papercolor-theme' " colorscheme PaperColor
 Plugin 'kshenoy/vim-signature' " show marks automatically
-Plugin 'tpope/vim-fugitive' " git integration
+Plugin 'tpope/vim-fugitive' " git integration : EATS CPU
 Plugin 'tpope/vim-endwise' 
 Plugin 'majutsushi/tagbar' " ctags viewer
-Plugin 'w0rp/ale'
+" Plugin 'w0rp/ale'
+Plugin 'ddrscott/vim-side-search'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -80,7 +72,8 @@ filetype plugin indent on    " required
 
 " choose and configure color scheme
 let g:seoul256_background = 235
-colorscheme apprentice
+" colorscheme apprentice
+colorscheme PaperColor
 set background=dark
 
 " nmap <S-Enter> O<Esc>
@@ -88,11 +81,14 @@ nmap <CR> i<CR><Esc>
 
 " go to last active tab
 au TabLeave * let g:lasttab = tabpagenr()
-nnoremap H :tabprevious<CR>
-nnoremap L :tabnext<CR>
+nnoremap <c-j> :bprevious<CR>
+nnoremap <c-k> :bnext<CR>
 
 
+" airline config
+let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#fnamemod = ':t'
+
 set number
 
 " disable arrow movement, resize splits instead
@@ -103,15 +99,14 @@ noremap <Right> :vertical resize -2<CR>
 
 runtime macros/matchit.vim
 
-" redraw vim background 
-set t_ut=
+" redraw vim background EATS CPU
+" set t_ut=
 
-" highlight current line
-set cursorline
+" highlight current line EATS CPU
+" set cursorline
 
 " allow at least 11 lines to be visible when scrolling
-set scrolloff=11
-
+set scrolloff=15
 
 " open file under cursor in a new tab
 " disable for now since it interferes with ctags
@@ -126,10 +121,10 @@ vmap ' :s/^" //<CR>
 " set clipboard=unnamedplus
 
 " navigate splits like a sane person
-nnoremap <c-j> <c-w>j
-nnoremap <c-k> <c-w>k
-nnoremap <c-h> <c-w>h
-nnoremap <c-l> <c-w>l
+" nnoremap <c-j> <c-w>j
+" nnoremap <c-k> <c-w>k
+" nnoremap <c-h> <c-w>h
+" nnoremap <c-l> <c-w>l
 
 " more natural splitting
 set splitbelow
@@ -139,14 +134,16 @@ set splitright
 nnoremap <Leader>r :VimuxPromptCommand<CR>
 nnoremap <Leader>j :VimuxRunLastCommand<CR>
 nnoremap <Leader>c :VimuxInterruptRunner<CR>
+nnoremap <Space> :VimuxRunLastCommand<CR>
 
-nnoremap <c-o> :Ags 
+nnoremap <c-o> :SideSearch 
 " nnoremap <c-w> :w<CR>
 
 " highlight search results
 set hlsearch
 
 " configure folds
+" foldmethod=syntax looks to be very slow
 set foldmethod=syntax
 set foldlevel=99
 
@@ -188,4 +185,14 @@ autocmd BufReadPost * RainbowParentheses
 " tagbar config
 nmap <F8> :TagbarToggle<CR>
 
-syntax off
+" side searcher configuration
+let g:side_search_splitter = 'new'
+let g:side_search_prg = 'ag --heading --stats -B1 -A 4'
+
+" navigate buffers
+nnoremap <silent> <tab> :bnext<CR>
+nnoremap <silent> <s-tab> :bprevious<CR>
+nnoremap <c-c> :bd<CR>
+
+" show full path in status line
+set statusline+=%F
