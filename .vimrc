@@ -85,11 +85,6 @@ nnoremap <c-j> :bprevious<CR>
 nnoremap <c-k> :bnext<CR>
 set hidden " allow switching from an unsaved buffer
 
-
-" airline config
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#fnamemod = ':t'
-
 set number
 
 " disable arrow movement, resize splits instead
@@ -100,14 +95,8 @@ noremap <Right> :vertical resize -2<CR>
 
 runtime macros/matchit.vim
 
-" redraw vim background EATS CPU
-" set t_ut=
-
-" highlight current line EATS CPU
-" set cursorline
-
-" allow at least 11 lines to be visible when scrolling
-set scrolloff=15
+" allow at least 11 lines to be visible when scrolling EATS CPU
+" set scrolloff=15 
 
 " open file under cursor in a new tab
 " disable for now since it interferes with ctags
