@@ -83,6 +83,7 @@ nmap <CR> i<CR><Esc>
 au TabLeave * let g:lasttab = tabpagenr()
 nnoremap <c-j> :bprevious<CR>
 nnoremap <c-k> :bnext<CR>
+set hidden " allow switching from an unsaved buffer
 
 
 " airline config
@@ -120,11 +121,8 @@ vmap ' :s/^" //<CR>
 
 " set clipboard=unnamedplus
 
-" navigate splits like a sane person
-" nnoremap <c-j> <c-w>j
-" nnoremap <c-k> <c-w>k
-" nnoremap <c-h> <c-w>h
-" nnoremap <c-l> <c-w>l
+" navigate splits 
+nnoremap <c-h> <c-w>w
 
 " more natural splitting
 set splitbelow
@@ -189,10 +187,8 @@ nmap <F8> :TagbarToggle<CR>
 let g:side_search_splitter = 'new'
 let g:side_search_prg = 'ag --heading --stats -B1 -A 4'
 
-" navigate buffers
-nnoremap <silent> <tab> :bnext<CR>
-nnoremap <silent> <s-tab> :bprevious<CR>
-nnoremap <c-c> :bd<CR>
+" work with buffers
+nnoremap <c-l> :bd<CR>
 
 " show full path in status line
 set statusline+=%F
