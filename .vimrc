@@ -123,10 +123,15 @@ nnoremap <Leader>j :VimuxRunLastCommand<CR>
 nnoremap <Leader>c :VimuxInterruptRunner<CR>
 nnoremap <Space> :VimuxRunLastCommand<CR>
 
-nnoremap <c-i> :SideSearch 
+" nnoremap <c-i> :SideSearch 
 
 " SideSearch current word and return to original window
 nnoremap <Leader>ss :SideSearch <C-r><C-w><CR> | wincmd p
+"  Create an shorter `SS` command
+command! -complete=file -nargs=+ SS execute 'SideSearch <args>'
+
+" or command abbreviation
+cabbrev SS SideSearch
 
 " highlight search results
 set hlsearch
