@@ -63,6 +63,7 @@ Plugin 'tpope/vim-endwise'
 Plugin 'majutsushi/tagbar' " ctags viewer
 " Plugin 'w0rp/ale'
 Plugin 'ddrscott/vim-side-search'
+Plugin 'rafi/awesome-vim-colorschemes'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -72,8 +73,7 @@ filetype plugin indent on    " required
 
 " choose and configure color scheme
 let g:seoul256_background = 235
-" colorscheme apprentice
-colorscheme PaperColor
+colorscheme apprentice
 set background=dark
 
 " nmap <S-Enter> O<Esc>
@@ -182,3 +182,35 @@ nnoremap <c-l> :bd<CR>
 
 " show full path in status line
 set statusline+=%F
+
+
+" Customize fzf colors to match your color scheme
+let g:fzf_colors =
+\ { 'fg':      ['fg', 'Normal'],
+  \ 'bg':      ['bg', 'Normal'],
+  \ 'hl':      ['fg', 'Comment'],
+  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+  \ 'hl+':     ['fg', 'Statement'],
+  \ 'info':    ['fg', 'PreProc'],
+  \ 'border':  ['fg', 'Ignore'],
+  \ 'prompt':  ['fg', 'Conditional'],
+  \ 'pointer': ['fg', 'Exception'],
+  \ 'marker':  ['fg', 'Keyword'],
+  \ 'spinner': ['fg', 'Label'],
+  \ 'header':  ['fg', 'Comment'] }
+
+
+" This is the default extra key bindings
+let g:fzf_action = {
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-x': 'split',
+  \ 'ctrl-v': 'vsplit' }
+
+" [Buffers] Jump to the existing window if possible
+let g:fzf_buffers_jump = 1
+
+" [Tags] Command to generate tags file
+let g:fzf_tags_command = 'ctags -R'
+
+
