@@ -123,8 +123,10 @@ nnoremap <Leader>j :VimuxRunLastCommand<CR>
 nnoremap <Leader>c :VimuxInterruptRunner<CR>
 nnoremap <Space> :VimuxRunLastCommand<CR>
 
-nnoremap <c-o> :SideSearch 
-" nnoremap <c-w> :w<CR>
+nnoremap <c-i> :SideSearch 
+
+" SideSearch current word and return to original window
+nnoremap <Leader>ss :SideSearch <C-r><C-w><CR> | wincmd p
 
 " highlight search results
 set hlsearch
@@ -213,4 +215,9 @@ let g:fzf_buffers_jump = 1
 " [Tags] Command to generate tags file
 let g:fzf_tags_command = 'ctags -R'
 
+function! s:find_git_root()
+  return system('git rev-parse --show-toplevel 2> /dev/null')[:-2]
+endfunction
 
+" Search for files in project root directory (use git root)
+command! ProjectFiles execute 'Files' s:find_git_root()
