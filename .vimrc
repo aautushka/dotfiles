@@ -190,6 +190,8 @@ nnoremap <c-l> :bd<CR>
 " show full path in status line
 set statusline+=%F
 
+"highlight max line length
+set colorcolumn=100
 
 " Customize fzf colors to match your color scheme
 let g:fzf_colors =
