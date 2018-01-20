@@ -122,6 +122,7 @@ alias ranger="ranger-cd"
 alias rr="ranger-cd"
 alias mypstree="pstree -s $$"
 alias isranger="mypstree | grep --color ranger"
+alias isr="mypstree | grep --color ranger"
 
 # convenience keys
 alias c="clear"
@@ -143,6 +144,7 @@ function split-mp3
 # docker commands
 function docker-rm-all
 {
+    docker rmi $(docker images -q)
     docker rm -f $(docker ps -a -q)
 }
 
@@ -152,6 +154,10 @@ function mkcd
     cd "$1"
 }
 
+# tar shortcuts
+alias targz="tar -zxvf"
+
+export FZF_DEFAULT_COMMAND='ag -g ""'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # cool fzf command from 
@@ -215,3 +221,50 @@ fd()
         -o -type d -print 2> /dev/null | fzf +m) && 
     cd "$dir"
 }
+
+# fh - repeat history
+fh()
+{
+    print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+}
+
+# fhe - repeat history
+fhe()
+{
+    eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+}
+
+# fkill - kill process
+fkill() 
+{
+    local pid
+    pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+    if [ "x$pid" != "x" ]
+    then
+        echo $pid | xargs kill -${1:-9}
+    fi
+}
+
+
+alias vimu="vim -u NONE"
+alias make="make -j12"
+
+# autojump - a faster way to navigate your filesystem
+if [ -f /usr/share/autojump/autojump.sh ]; then
+    . /usr/share/autojump/autojump.sh
+fi
+
+# https://github.com/changyuheng/zsh-interactive-cd
+# if [ -f ~/zsh-interactive-cd.plugin.zsh ]; then
+#     . ~/zsh-interactive-cd.plugin.zsh
+# fi
+
+# use vim for less
+alias less="view -"
+
+# golang
+export GOROOT=/usr/lib/go-1.9/
+export PATH=$GOROOT/bin:$PATH
+
+# rm shortcut
+alias rf="rm -rf"
