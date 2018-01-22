@@ -129,6 +129,7 @@ nnoremap <Space> :VimuxRunLastCommand<CR>
 nnoremap <Leader>ss :SideSearch <C-r><C-w><CR> | wincmd p
 "  Create an shorter `SS` command
 command! -complete=file -nargs=+ SS execute 'SideSearch <args>'
+command! -complete=file -nargs=+ Ss execute 'SideSearch <args>'
 
 " or command abbreviation
 cabbrev SS SideSearch
