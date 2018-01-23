@@ -268,3 +268,10 @@ export PATH=$GOROOT/bin:$PATH
 
 # rm shortcut
 alias rf="rm -rf"
+
+# run tmux if it exists
+if [ -x "$(command -v tmux)" ]; then
+    if [[ "$TERM" != "screen-256color" ]]; then
+        tmux attach-session -t "$USER" || tmux new-session -s "$USER"
+    fi
+fi
