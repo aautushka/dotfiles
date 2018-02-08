@@ -275,3 +275,59 @@ if [ -x "$(command -v tmux)" ]; then
         tmux attach-session -t "$USER" || tmux new-session -s "$USER"
     fi
 fi
+
+# job
+alias bitshares-wallet="cli_wallet -s wss://bitshares.openledger.info/ws:80 -w /home/aautushka/bitshares.wallet.json"
+
+#disk usage aliases
+alias dfh="df -h"
+alias du1="du -hd1"
+
+#cmake aliases
+alias cmake-targets="cmake --build . --target help"
+
+#ctags aliases
+alias ctags-cpp="ctags --c++-kinds=+p --fields=+iaS --language-force=C++ -R ."
+
+#elasticsearch convenience shortcuts
+function es.docker
+{
+    docker pull docker.elastic.co/elasticsearch/elasticsearch:6.2.0
+    docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.2.0
+}
+
+function es.dump
+{
+    # $1 index name
+    url="localhost:9200/$1/_search?pretty"
+    curl -H "Content-Type: application/json" -X GET "$url"  -d '{"query": { "match_all": {} } }'
+}
+
+function es.rm
+{
+    # $1 index name
+    curl -X DELETE "localhost:9200/$1?pretty"
+}
+
+function es.search 
+{
+    # $1 index name
+    curl -X GET "localhost:9200/_search?q=$1&pretty"
+}
+
+function es.get
+{
+    # $1 document path
+    curl -X GET "localhost:9200/$1"
+}
+
+function es.add
+{
+    # $1 document path
+    # $2 document json
+    curl -H "Content-Type: application/json" -X POST "localhost:9200/$1?pretty" -d "$2"
+}
+
+alias es.clean="curl -XDELETE 'localhost:9200/*?pretty'"
+alias es.list="curl -X GET 'localhost:9200/_cat/indices?pretty'"
+alias es.info="curl -X GET 'localhost:9200'"
