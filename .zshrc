@@ -311,8 +311,15 @@ function es.rm
 
 function es.search 
 {
-    # $1 index name
+    # $1 query
     curl -X GET "localhost:9200/_search?q=$1&pretty"
+}
+
+function es.search.in
+{
+    # $1 index
+    # $2 query
+    curl -X GET "localhost:9200/$1/_search?q=$2&pretty"
 }
 
 function es.get
@@ -328,6 +335,21 @@ function es.add
     curl -H "Content-Type: application/json" -X POST "localhost:9200/$1?pretty" -d "$2"
 }
 
+function es.mapping
+{
+    # $1 document path
+    curl "localhost:9200/$1/_mapping?pretty"
+}
+
+function es.count
+{
+    # $1 index
+    post='{"query": { "bool": { "must": [{"match_all":{}}]}}}'
+    url="localhost:9200/$1/_count?pretty" 
+    curl -H "Content-Type: application/json" -X POST "$url" -d "$post"
+}
+
 alias es.clean="curl -XDELETE 'localhost:9200/*?pretty'"
 alias es.list="curl -X GET 'localhost:9200/_cat/indices?pretty'"
 alias es.info="curl -X GET 'localhost:9200'"
+alias es.health="curl -XGET 'localhost:9200/_cluster/health?pretty'"

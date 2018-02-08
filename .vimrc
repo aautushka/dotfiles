@@ -64,6 +64,12 @@ Plugin 'majutsushi/tagbar' " ctags viewer
 " Plugin 'w0rp/ale'
 Plugin 'ddrscott/vim-side-search'
 Plugin 'rafi/awesome-vim-colorschemes'
+Plugin 'fatih/vim-go'
+
+" show indentations, triggered by <leader>ig
+Plugin 'nathanaelkane/vim-indent-guides'
+
+" Plugin 'plasticboy/vim-markdown'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -74,6 +80,8 @@ filetype plugin indent on    " required
 " choose and configure color scheme
 let g:seoul256_background = 235
 colorscheme apprentice
+" colorscheme PaperColor
+" colorscheme seoul256
 set background=dark
 
 " nmap <S-Enter> O<Esc>
@@ -191,7 +199,7 @@ nnoremap <c-l> :bd<CR>
 " show full path in status line
 set statusline+=%F
 
-"highlight max line length
+" highlight max line length
 set colorcolumn=100
 
 " Customize fzf colors to match your color scheme
@@ -229,3 +237,11 @@ endfunction
 
 " Search for files in project root directory (use git root)
 command! ProjectFiles execute 'Files' s:find_git_root()
+
+nnoremap <silent> <Leader>l :Lines<CR>
+
+" look for word under cursor
+nnoremap <silent> <Leader>ag :Ag <C-R><C-W><CR>
+
+" do not look in files names when doing fzf with :Ag
+command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : --nth 4..'}, <bang>0)
