@@ -8,7 +8,13 @@ export ZSH=/Users/marina/.oh-my-zsh
 # it'll load a random theme each time that oh-my-zsh is loaded.
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME="robbyrussell"
-# ZSH_THEME="agnoster"
+
+# Set list of themes to load
+# Setting this variable when ZSH_THEME=random
+# cause zsh load theme from this variable instead of
+# looking in ~/.oh-my-zsh/themes/
+# An empty array have no effect
+# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -52,7 +58,9 @@ ZSH_THEME="robbyrussell"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(
+  git
+)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -96,7 +104,7 @@ alias psgrep="ps -Af | grep --color"
 # edit my dotfiles
 alias vimrc="vim ~/.vimrc"
 alias zshrc="vim ~/.zshrc"
-alias tmuxrc="vim ~/.tmux.conf"
+alias tmuxconf="vim ~/.tmux.conf"
 
 # git commands
 alias st="git status -s"
@@ -250,9 +258,10 @@ alias vimu="vim -u NONE"
 alias make="make -j12"
 
 # autojump - a faster way to navigate your filesystem
-if [ -f /usr/share/autojump/autojump.sh ]; then
-    . /usr/share/autojump/autojump.sh
-fi
+# https://github.com/wting/autojump
+[[ -s $HOME/.autojump/etc/profile.d/autojump.sh ]] && source $HOME/.autojump/etc/profile.d/autojump.sh
+autoload -U compinit && compinit -u
+
 
 # https://github.com/changyuheng/zsh-interactive-cd
 # if [ -f ~/zsh-interactive-cd.plugin.zsh ]; then
@@ -276,9 +285,6 @@ if [ -x "$(command -v tmux)" ]; then
     fi
 fi
 
-# job
-alias bitshares-wallet="cli_wallet -s wss://bitshares.openledger.info/ws:80 -w /home/aautushka/bitshares.wallet.json"
-
 #disk usage aliases
 alias dfh="df -h"
 alias du1="du -hd1"
@@ -290,9 +296,13 @@ alias cmake-targets="cmake --build . --target help"
 alias ctags-cpp="ctags --c++-kinds=+p --fields=+iaS --language-force=C++ -R ."
 
 #elasticsearch convenience shortcuts
-function es.docker
+function es.docker.pull
 {
     docker pull docker.elastic.co/elasticsearch/elasticsearch:6.2.0
+}
+
+function es.docker.run
+{
     docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.2.0
 }
 
@@ -346,6 +356,23 @@ function es.count
     # $1 index
     post='{"query": { "bool": { "must": [{"match_all":{}}]}}}'
     url="localhost:9200/$1/_count?pretty" 
+    curl -H "Content-Type: application/json" -X POST "$url" -d "$post"
+}
+
+function es.match
+{
+    # usage: es.match name:john position:architect
+    query=""
+    for q in "$@"
+    do
+      quoted=$(echo "$q" | sed -r "s/([^:]+)/\"\\1\"/g")
+      query="$query, {\"match\":{$quoted}}"
+    done
+
+    query=$(echo $query | sed -e "s/^,//g")
+    
+    post='{"query": { "bool":{"must":['"$query"']}}}'
+    url="localhost:9200/_search?pretty" 
     curl -H "Content-Type: application/json" -X POST "$url" -d "$post"
 }
 
