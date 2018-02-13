@@ -93,6 +93,9 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+# set default text editor
+export EDITOR=$(which vim)
+
 # use vim key bindings
 bindkey -v
 
@@ -105,10 +108,6 @@ alias psgrep="ps -Af | grep --color"
 alias vimrc="vim ~/.vimrc"
 alias zshrc="vim ~/.zshrc"
 alias tmuxconf="vim ~/.tmux.conf"
-
-# git commands
-alias st="git status -s"
-
 
 #This is based on: https://github.com/ranger/ranger/blob/master/examples/bash_automatic_cd.sh
 #Paste this into your .zshrc:
@@ -380,3 +379,7 @@ alias es.clean="curl -XDELETE 'localhost:9200/*?pretty'"
 alias es.list="curl -X GET 'localhost:9200/_cat/indices?pretty'"
 alias es.info="curl -X GET 'localhost:9200'"
 alias es.health="curl -XGET 'localhost:9200/_cluster/health?pretty'"
+
+# git aliases
+alias git.cache="git config credential.helper 'cache --timeout=3000000'"
+alias st="git status -s"
