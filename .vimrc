@@ -135,6 +135,7 @@ nnoremap <Space> :VimuxRunLastCommand<CR>
 
 " SideSearch current word and return to original window
 nnoremap <Leader>ss :SideSearch <C-r><C-w><CR> | wincmd p
+nnoremap <Leader><Leader>s :SideSearch 
 "  Create an shorter `SS` command
 command! -complete=file -nargs=+ SS execute 'SideSearch <args>'
 command! -complete=file -nargs=+ Ss execute 'SideSearch <args>'
@@ -190,8 +191,8 @@ nmap <F8> :TagbarToggle<CR>
 
 " side searcher configuration
 let g:side_search_splitter = 'new'
-let g:side_search_split_pct = 0.7
-let g:side_search_prg = 'ag --heading --stats -B1 -A 4'
+let g:side_search_split_pct = 0.6
+let g:side_search_prg = 'ag --heading --stats -B1 -A 0'
 
 " work with buffers
 nnoremap <c-l> :bd<CR>
@@ -239,6 +240,7 @@ endfunction
 command! ProjectFiles execute 'Files' s:find_git_root()
 
 nnoremap <silent> <Leader>l :Lines<CR>
+nnoremap <Leader>ss :SideSearch <C-r><C-w><CR> | wincmd p
 
 " look for word under cursor
 nnoremap <silent> <Leader>ag :Ag <C-R><C-W><CR>
