@@ -61,7 +61,7 @@ Plugin 'kshenoy/vim-signature' " show marks automatically
 Plugin 'tpope/vim-fugitive' " git integration : EATS CPU
 Plugin 'tpope/vim-endwise' 
 Plugin 'majutsushi/tagbar' " ctags viewer
-" Plugin 'w0rp/ale'
+Plugin 'w0rp/ale'
 Plugin 'ddrscott/vim-side-search'
 Plugin 'rafi/awesome-vim-colorschemes'
 Plugin 'fatih/vim-go'
@@ -148,8 +148,8 @@ set hlsearch
 
 " configure folds
 " foldmethod=syntax looks to be very slow
-set foldmethod=syntax
-set foldlevel=99
+" set foldmethod=syntax
+" set foldlevel=99
 
 " open definition in new tab
 nnoremap <c-N> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
@@ -247,3 +247,22 @@ nnoremap <silent> <Leader>ag :Ag <C-R><C-W><CR>
 
 " do not look in files names when doing fzf with :Ag
 command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : --nth 4..'}, <bang>0)
+
+"auto close {
+function! s:CloseBracket()
+  let line = getline('.')
+  if line =~# '^\s*\(struct\|class\|enum\) '
+    return "\<Enter>{\<Enter>};\<Esc>O"
+  elseif searchpair('(', '', ')', 'bmn', '', line('.'))
+    " Probably inside a function call. Close it off.
+    return "{\<Enter>});\<Esc>O"
+  else
+    return "{\<Enter>}\<Esc>O"
+  endif
+endfunction
+inoremap <expr> {<Enter> <SID>CloseBracket()
+
+" do not indent private: public: protected: in c++ code
+" :help cino-g
+" :help cino-h
+set cinoptions+=g0
