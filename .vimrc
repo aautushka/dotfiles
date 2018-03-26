@@ -266,3 +266,10 @@ inoremap <expr> {<Enter> <SID>CloseBracket()
 " :help cino-g
 " :help cino-h
 set cinoptions+=g0
+
+" ale C++ opts
+" let g:ale_cpp_clang_options = '-std=c++14 -Wall -I/opt/boost_1_66_0/include'
+" let g:ale_cpp_gcc_options = '-std=c++14 -Wall -I/opt/boost_1_66_0/include'
+
+" load .vimrc from the current directory
+set exrc
