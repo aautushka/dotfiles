@@ -109,7 +109,7 @@ __#\*__ find previous word under cursor, find next word under cursor
 
 ## marks
 **m[a-z]** set mark  
-**m[A-Z]** set global mark
+**m[A-Z]** set global mark  
 **'[a-zA-Z] \`[a-zA-Z]** go to mark  
 **\`\`** go to prev mark  
 
