@@ -108,7 +108,8 @@ __#\*__ find previous word under cursor, find next word under cursor
 **^wq** close split  
 
 ## marks
-**m[a-zA-Z]** set mark  
+**m[a-z]** set mark  
+**m[A-Z]** set global mark
 **'[a-zA-Z] \`[a-zA-Z]** go to mark  
 **\`\`** go to prev mark  
 
