@@ -59,7 +59,7 @@ __#\*__ find previous word under cursor, find next word under cursor
 **^b** delete char before cursor  
 **^w** delete word before cursor  
 **^u** delete line before cursor  
-**^t** indent (insert a tab at the start of the line)
+**^t** indent (insert a tab at the start of the line)  
 **^d** un-indent  
 **^y** duplicate the character in the same column on the preceding line  
 **^e** duplicate the character in the same column on the followint line  
@@ -131,7 +131,7 @@ __#\*__ find previous word under cursor, find next word under cursor
 **dp** delete paragraph  
 **dW** delete WORD  
 **daw** delete around word  
-**diw** delete inside word 
+**diw** delete inside word   
 **dis** delete inside sentence  
 **das** delete around sentence  
 **dip** delete inside paragraph  
