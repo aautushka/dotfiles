@@ -60,14 +60,14 @@ __#\*__ find previous word under cursor, find next word under cursor
 **^w** delete word before cursor  
 **^u** delete line before cursor  
 **^t** indent (insert a tab at the start of the line)
-**^d** un-indent
-**^y** duplicate the character in the same column on the preceding line
-**^e** duplicate the character in the same column on the followint line
-**^a** insert again whatever the most-recent inserted text was
-**^r** insert the contents of a register
-**^r=** evaluate expression and insert the result
-**^v** insert the next character verbatim (event if it's a control char)
-**^o** take back to Normal mode for one command (e.g. delete the rest of the line ^oD)
+**^d** un-indent 
+**^y** duplicate the character in the same column on the preceding line 
+**^e** duplicate the character in the same column on the followint line 
+**^a** insert again whatever the most-recent inserted text was 
+**^r** insert the contents of a register 
+**^r=** evaluate expression and insert the result 
+**^v** insert the next character verbatim (event if it's a control char) 
+**^o** take back to Normal mode for one command (e.g. delete the rest of the line ^oD) 
 
 
 ## editing
