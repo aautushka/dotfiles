@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH=/Users/marina/.oh-my-zsh
+export ZSH=/Users/aautushka/.oh-my-zsh
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
@@ -254,6 +254,7 @@ fkill()
 
 
 alias vimu="vim -u NONE"
+alias v="vim"
 alias make="make -j12"
 
 # autojump - a faster way to navigate your filesystem
@@ -371,6 +372,24 @@ function es.match
     query=$(echo $query | sed -e "s/^,//g")
     
     post='{"query": { "bool":{"must":['"$query"']}}}'
+    url="localhost:9200/_search?pretty" 
+    curl -H "Content-Type: application/json" -X POST "$url" -d "$post"
+}
+
+function es.term
+{
+    # usage: es.match name:john position:architect
+    query=""
+    for q in "$@"
+    do
+      quoted=$(echo "$q" | sed -r "s/([^:]+)/\"\\1\"/g")
+      query="$query, {\"term\":{$quoted}}"
+    done
+
+    query=$(echo $query | sed -e "s/^,//g")
+    
+    post='{"query": '"$query"'}'
+    echo $post
     url="localhost:9200/_search?pretty" 
     curl -H "Content-Type: application/json" -X POST "$url" -d "$post"
 }
