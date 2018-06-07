@@ -68,7 +68,7 @@ __#\*__ find previous word under cursor, find next word under cursor
 **^r=** evaluate expression and insert the result  
 **^v** insert the next character verbatim (event if it's a control char)  
 **^o** take back to Normal mode for one command (e.g. delete the rest of the line ^oD)  
-
+**^r^rn** insert the content of register n
 
 ## editing
 **r R** replace single character, replace characters  
@@ -86,6 +86,11 @@ __#\*__ find previous word under cursor, find next word under cursor
 **gu gU** make lower-case, make upper-case  
 **guu gUU** make line lower-case, upper-case  
 **^a ^x** increment number, decrement number  
+**p P** paste after/before the cursor  
+**]p ]P** paste after/before the cursor with the same level of indenting   
+**"ayw** yank word in the named register a  
+**"Ayw** yank word and append to the named register a   
+**"zd$** delete and save to the named register z  
 
 ## formatting
 **> <** shift right, shift left  
@@ -166,8 +171,20 @@ __#\*__ find previous word under cursor, find next word under cursor
 ## help
 **: vimtutor**  
 
+## history of changes
+**g-** move back in time  
+**g+** move forward in time  
+**:earlier 10m** return to the state the buffer was in 10 mins age  
+**:later 30s** return to the state 30 second after  
+
+## buffers 
+**:read filename** read file into the current buffer  
+**:0read filename** insert file contents at the beginning  
+**:Gread filename** insert file contents at the end  
+
 ## links
 https://rumorscity.com/wp-content/uploads/2014/08/10-Best-VIM-Cheat-Sheet-01.jpg  
 https://rumorscity.com/wp-content/uploads/2014/08/10-Best-VIM-Cheat-Sheet-02.jpg  
-https://rumorscity.com/wp-content/uploads/2014/08/10-Best-VIM-Cheat-Sheet-05.jpg  
+https://rumorscity.com/wp-content/uploads/2014/08/10-Best-VIM-Cheat-Sheet-05.jpg
+http://murraytwins.com/tmp/mastering_vim.pdf
 
