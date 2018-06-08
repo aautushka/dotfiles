@@ -68,7 +68,14 @@ __#\*__ find previous word under cursor, find next word under cursor
 **^r=** evaluate expression and insert the result  
 **^v** insert the next character verbatim (event if it's a control char)  
 **^o** take back to Normal mode for one command (e.g. delete the rest of the line ^oD)  
-**^r^rn** insert the content of register n
+**^r^rn** insert the content of register n  
+**^x^f** autocomplete filename 
+**^x^d** autocomplete C preprocessor symbols  
+**^x^n** autocomplete identifiers from the current file  
+**^x^l** autocomplete existing lines  
+**^x^k** autocomplete identifiers from a dict file  
+**^x^t** autocomplete related identifiers from a thesaurus file  
+
 
 ## editing
 **r R** replace single character, replace characters  
@@ -149,6 +156,8 @@ __#\*__ find previous word under cursor, find next word under cursor
 **di[ da[ di] da]** delete inside brackets, around brackets  
 **di" da"** delete inside double quotes, around double quotes  
 **di' da'** delete inside quotes, around quotes  
+**bib** delete inside brackets  
+
 
 ## operators 
 **y** yank  
@@ -181,6 +190,27 @@ __#\*__ find previous word under cursor, find next word under cursor
 **:read filename** read file into the current buffer  
 **:0read filename** insert file contents at the beginning  
 **:Gread filename** insert file contents at the end  
+
+## file browser 
+**-** go to parent dir  
+**D** delete a file  
+**R** rename a file  
+**s** sort  
+**r** reverse sort  
+**i** change representation  
+**p** preview  
+**c** change the curdir  
+**d** create a new dir  
+**o** open in a horizontal split  
+**v** open in a vertical split  
+
+## abbreviations 
+**:abbreviate hw=helloworld** when typing hw in the insert node expand to helloworld (spaces are not allowed)  
+**^]** expand abbreviation  
+**:abbreviate** list abbreviations  
+**:unabbreviate** remove abbreviation  
+**:abclear** remove all abbreviations  
+**^v** deactivate abbreviation  
 
 ## links
 https://rumorscity.com/wp-content/uploads/2014/08/10-Best-VIM-Cheat-Sheet-01.jpg  
