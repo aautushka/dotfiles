@@ -402,3 +402,8 @@ alias es.health="curl -XGET 'localhost:9200/_cluster/health?pretty'"
 # git aliases
 alias git.cache="git config credential.helper 'cache --timeout=3000000'"
 alias st="git status -s"
+
+# git clone https://github.com/hkbakke/bash-insulter.git bash-insulter
+if [ -f $HOME/bash-insulter/src/bash.command-not-found ]; then
+      source $HOME/bash-insulter/src/bash.command-not-found
+fi
