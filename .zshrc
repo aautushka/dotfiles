@@ -164,7 +164,7 @@ function mkcd
 # tar shortcuts
 alias targz="tar -zxvf"
 
-export FZF_DEFAULT_COMMAND='ag -g ""'
+export FZF_DEFAULT_COMMAND='rg --files --hidden --follow' # use ripgrep - a faster alternative to ag
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # cool fzf command from 
@@ -203,7 +203,6 @@ fo()
     IFS=$'\n' out=($(fzf-tmux --query="$1" --exit-0 --expect=ctrl-o,ctrl-e))
     key=$(head -1 <<< "$out")
     file=$(head -2 <<< "$out" | tail -1)
-    echo "hello $file"
     if [ -n "$file" ]; then 
         [ "$key" = ctrl-o ] && open "$file" || ${EDITOR:-vim} "$file"
     fi
@@ -259,8 +258,12 @@ alias make="make -j12"
 
 # autojump - a faster way to navigate your filesystem
 # https://github.com/wting/autojump
+# linux
 [[ -s $HOME/.autojump/etc/profile.d/autojump.sh ]] && source $HOME/.autojump/etc/profile.d/autojump.sh
+# macos
+[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
 autoload -U compinit && compinit -u
+
 
 
 # https://github.com/changyuheng/zsh-interactive-cd
@@ -279,11 +282,11 @@ export PATH=$GOROOT/bin:$PATH
 alias rf="rm -rf"
 
 # run tmux if it exists
-if [ -x "$(command -v tmux)" ]; then
-    if [[ "$TERM" != "screen-256color" ]]; then
-        tmux attach-session -t "$USER" || tmux new-session -s "$USER"
-    fi
-fi
+# if [ -x "$(command -v tmux)" ]; then
+#     if [[ "$TERM" != "screen-256color" ]]; then
+#         tmux attach-session -t "$USER" || tmux new-session -s "$USER"
+#     fi
+# fi
 
 #disk usage aliases
 alias dfh="df -h"
@@ -407,3 +410,21 @@ alias st="git status -s"
 if [ -f $HOME/bash-insulter/src/bash.command-not-found ]; then
       source $HOME/bash-insulter/src/bash.command-not-found
 fi
+
+# side-by-side diff in terminal with line wrap
+alias wdiff="ydiff -s -w 0 --wrap"
+
+#job
+# adnroid platform tools
+export PATH=$PATH:$HOME/platform-tools
+
+#macos 
+alias ldd="otool -L"
+
+j() {
+    if [[ "$#" -ne 0 ]]; then
+        cd $(autojump $@)
+        return
+    fi
+    cd "$(autojump -s | grep '^[0-9]' | sed 's/^[^\/]*//' | grep "^/" |  fzf --height 40% --nth 1.. --reverse --inline-info +s --tac --query "${*##-* }" )"
+}

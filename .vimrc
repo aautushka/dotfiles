@@ -47,9 +47,7 @@ Plugin 'benmills/vimux' " vim-tmux integration
 Plugin 'gabesoft/vim-ags' " integrates the silver searcher 
 Plugin 'airblade/vim-gitgutter' " show git diff
 Plugin 'craigemery/vim-autotag' " automatically update tags
-Plugin 'easymotion/vim-easymotion' 
 Plugin 'haya14busa/incsearch.vim' " incrementally hightligh all searches
-Plugin 'haya14busa/incsearch-easymotion.vim'
 Plugin 'tpope/vim-unimpaired' " some usefule key bindings
 Plugin 'tpope/vim-commentary' " comment code
 Plugin 'tpope/vim-repeat' " . to work with plugins
@@ -61,15 +59,44 @@ Plugin 'kshenoy/vim-signature' " show marks automatically
 Plugin 'tpope/vim-fugitive' " git integration : EATS CPU
 Plugin 'tpope/vim-endwise' 
 Plugin 'majutsushi/tagbar' " ctags viewer
-Plugin 'w0rp/ale'
+" Plugin 'w0rp/ale'
 Plugin 'ddrscott/vim-side-search'
 Plugin 'rafi/awesome-vim-colorschemes'
 Plugin 'fatih/vim-go'
+Plugin 'gfontenot/vim-xcode'
 
 " show indentations, triggered by <leader>ig
 Plugin 'nathanaelkane/vim-indent-guides'
 
 " Plugin 'plasticboy/vim-markdown'
+
+" search and load local vimrc files
+Plugin 'embear/vim-localvimrc'
+
+Plugin 'eraserhd/vim-ios'
+Plugin 'msanders/cocoa.vim'
+Plugin 'rhysd/vim-clang-format'
+Plugin 'djoshea/vim-autoread'
+Plugin 'b4winckler/vim-objc'
+
+" great idea, but not working for me for some reason
+Plugin 'itchyny/vim-cursorword'
+
+" no working either
+" https://medium.com/@xanderdunn/replace-xcode-with-neovim-c81f89a50a23
+" Plugin 'qstrahl/vim-Matchmaker'
+
+Plugin 'Chiel92/vim-autoformat'
+Plugin 'zefei/simple-dark' " colorscheme
+Plugin 'yearofmoo/Vim-Darkmate' " colorscheme
+Plugin 'zeis/vim-kolor' " colorscheme
+
+Plugin 'itchyny/lightline.vim' " statusline
+Plugin 'mhinz/vim-startify'
+Plugin 'justinmk/vim-sneak'
+
+Plugin 'junegunn/vim-pseudocl'
+" Plugin 'junegunn/vim-oblique' " seems to be too slow
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -117,6 +144,7 @@ vmap " :s/^/" /<CR>
 vmap ' :s/^" //<CR>
 
 " set clipboard=unnamedplus
+set clipboard=unnamed
 
 " navigate splits 
 nnoremap <c-h> <c-w>w
@@ -135,7 +163,8 @@ nnoremap <Space> :VimuxRunLastCommand<CR>
 
 " SideSearch current word and return to original window
 nnoremap <Leader>ss :SideSearch <C-r><C-w><CR> | wincmd p
-nnoremap <Leader><Leader>s :SideSearch 
+nnoremap <Leader><Leader>s :SideSearch<space>
+nmap <Leader>s :SideSearch<space>
 "  Create an shorter `SS` command
 command! -complete=file -nargs=+ SS execute 'SideSearch <args>'
 command! -complete=file -nargs=+ Ss execute 'SideSearch <args>'
@@ -165,22 +194,13 @@ map / <Plug>(incsearch-forward)
 map ? <Plug>(incsearch-backward)
 map g/ <Plug>(incsearch-stay)
 
-" incsearch-easymotion.vim 
-map z/ <Plug>(incsearch-easymotion-/)
-map z? <Plug>(incsearch-easymotion-?)
-map zg/ <Plug>(incsearch-easymotion-stay)
-
 " navigate in a wrapped line
 nmap j gj
 nmap k gk
 
-" easymotion configuration
-nmap <Leader>s <Plug>(easymotion-s2)
-nmap <Leader>t <Plug>(easymotion-t2)
-nmap <Leader>/ <Plug>(easymotion-sn)
-
 " fzf configuration
 nmap <c-p> :FZF<CR>
+nmap <Leader>b :BLines <CR>
 
 " rainbow parentheses
 let g:rainbow#pairs = [['(', ')'], ['[', ']'], ['{', '}']]
@@ -260,7 +280,7 @@ function! s:CloseBracket()
     return "{\<Enter>}\<Esc>O"
   endif
 endfunction
-inoremap <expr> {<Enter> <SID>CloseBracket()
+" inoremap <expr> {<Enter> <SID>CloseBracket()
 
 " do not indent private: public: protected: in c++ code
 " :help cino-g
@@ -276,8 +296,6 @@ let g:ale_sign_warning = '?'
 highlight clear ALEErrorSign
 highlight clear ALEWarningSign
 
-" load .vimrc from the current directory
-set exrc
 
 set matchpairs+=<:>
 
@@ -401,3 +419,59 @@ nnoremap <silent> <Leader><Enter> :call fzf#run({
 \   'options': '+m',
 \   'down':    len(<sid>buflist()) + 2
 \ })<CR>
+
+command! -bang -nargs=* Find call fzf#vim#grep( 'rg --column --line-number --no-heading --fixed-strings --ignore-case --hidden --follow --color "always" '.shellescape(<q-args>), 1, <bang>0)
+
+" enable syntax higlighting for metal shading language (kind of like cpp)
+autocmd BufEnter *.metal :setlocal filetype=cpp
+
+" load .vimrc from the current directory
+set exrc
+
+" local vimrc
+let g:localvimrc_sandbox=0
+let g:localvimrc_ask=0
+
+" fix c++ lambda indentation
+let c_no_curly_error = 1
+set cindent
+set smartindent
+
+nnoremap <Leader>cf :ClangFormat<CR>
+
+" center screen after jumping to a mark
+nnoremap <expr> ' "'" . nr2char(getchar()) . "zz"
+nnoremap <expr> ` "`" . nr2char(getchar()) . "zz"
+
+
+" temporarily highlight the line jumped to
+function s:Cursor_Moved()
+  let cur_pos = winline()
+  if g:last_pos == 0
+    set cul
+    let g:last_pos = cur_pos
+    return
+  endif
+  let diff = g:last_pos - cur_pos
+  if diff > 1 || diff < -1
+    set cul
+  else
+    set nocul
+  endif
+  let g:last_pos = cur_pos
+endfunction
+autocmd CursorMoved,CursorMovedI * call s:Cursor_Moved()
+let g:last_pos = 0
+
+" search word under cursor, hightligh matches but do not move
+nnoremap <silent> g* :let @/=expand('<cword>') <bar> set hls <cr>
+
+nmap G Gzz
+
+let g:cursorword_highlight = 1
+
+" Autoformat
+" autocmd FileType objc,objcpp autocmd InsertLeave <buffer> :silent Autoformat
+
+" vim-oblique
+" let g:oblique#incsearch_highlight_all = 1
