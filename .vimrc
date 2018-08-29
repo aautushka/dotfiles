@@ -67,6 +67,7 @@ Plugin 'gfontenot/vim-xcode'
 
 " show indentations, triggered by <leader>ig
 Plugin 'nathanaelkane/vim-indent-guides'
+" Plugin 'Raimondi/delimitMate' " auto brackets
 
 " Plugin 'plasticboy/vim-markdown'
 
@@ -79,8 +80,8 @@ Plugin 'rhysd/vim-clang-format'
 Plugin 'djoshea/vim-autoread'
 Plugin 'b4winckler/vim-objc'
 
-" great idea, but not working for me for some reason
-Plugin 'itchyny/vim-cursorword'
+" great idea, but so slow
+" Plugin 'itchyny/vim-cursorword'
 
 " no working either
 " https://medium.com/@xanderdunn/replace-xcode-with-neovim-c81f89a50a23
@@ -90,6 +91,7 @@ Plugin 'Chiel92/vim-autoformat'
 Plugin 'zefei/simple-dark' " colorscheme
 Plugin 'yearofmoo/Vim-Darkmate' " colorscheme
 Plugin 'zeis/vim-kolor' " colorscheme
+Plugin 'dracula/vim' " colorscheme
 
 Plugin 'itchyny/lightline.vim' " statusline
 Plugin 'mhinz/vim-startify'
@@ -97,6 +99,8 @@ Plugin 'justinmk/vim-sneak'
 
 Plugin 'junegunn/vim-pseudocl'
 " Plugin 'junegunn/vim-oblique' " seems to be too slow
+
+Plugin 'goerz/ipynb_notedown.vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -106,9 +110,11 @@ filetype plugin indent on    " required
 
 " choose and configure color scheme
 let g:seoul256_background = 235
-colorscheme apprentice
+" colorscheme apprentice
 " colorscheme PaperColor
 " colorscheme seoul256
+" colorscheme kolor
+colorscheme dracula
 set background=dark
 
 " nmap <S-Enter> O<Esc>
@@ -168,7 +174,6 @@ nmap <Leader>s :SideSearch<space>
 "  Create an shorter `SS` command
 command! -complete=file -nargs=+ SS execute 'SideSearch <args>'
 command! -complete=file -nargs=+ Ss execute 'SideSearch <args>'
-
 " or command abbreviation
 cabbrev SS SideSearch
 

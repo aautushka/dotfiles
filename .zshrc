@@ -60,6 +60,10 @@ ZSH_THEME="robbyrussell"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
   git
+  gitfast
+  vi-mode
+  catimg
+  gradle
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -254,6 +258,7 @@ fkill()
 
 alias vimu="vim -u NONE"
 alias v="vim"
+alias vi=vim
 alias make="make -j12"
 
 # autojump - a faster way to navigate your filesystem
