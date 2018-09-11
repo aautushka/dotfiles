@@ -36,11 +36,13 @@ Plugin 'VundleVim/Vundle.vim'
 " Plugin 'octol/vim-cpp-enhanced-highlight' " C++ syntax highlighting EATS CPU
 " Plugin 'vim-airline/vim-airline' " status line EATS CPU 
 " Plugin 'vim-airline/vim-airline-themes' " status line themes EATS CPU
+
 Plugin 'ap/vim-buftabline'
 Plugin 'tpope/vim-sensible.git' " some vim defaults
 Plugin 'junegunn/rainbow_parentheses.vim' " Rainbow parentheses 
 Plugin 'romainl/Apprentice' " color scheme
 Plugin 'junegunn/seoul256.vim' " color sheme
+
 " Plugin 'junegunn/indentLine' " display identation levels EATS CPU
 Plugin 'tpope/vim-surround' 
 Plugin 'benmills/vimux' " vim-tmux integration
@@ -92,6 +94,8 @@ Plugin 'zefei/simple-dark' " colorscheme
 Plugin 'yearofmoo/Vim-Darkmate' " colorscheme
 Plugin 'zeis/vim-kolor' " colorscheme
 Plugin 'dracula/vim' " colorscheme
+Plugin 'reedes/vim-colors-pencil' " colorscheme
+Plugin 'pbrisbin/vim-colors-off' " colorscheme
 
 Plugin 'itchyny/lightline.vim' " statusline
 Plugin 'mhinz/vim-startify'
@@ -101,9 +105,21 @@ Plugin 'junegunn/vim-pseudocl'
 " Plugin 'junegunn/vim-oblique' " seems to be too slow
 
 Plugin 'goerz/ipynb_notedown.vim'
+"Plugin 'justinmk/vim-syntax-extra' " better c highligniting
+
+" Add maktaba and codefmt to the runtimepath.
+" (The latter must be installed before it can be used.)
+Plugin 'google/vim-maktaba'
+Plugin 'google/vim-codefmt'
+" Also add Glaive, which is used to configure codefmt's maktaba flags. See
+" `:help :Glaive` for usage.
+Plugin 'google/vim-glaive'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
+call glaive#Install()
+Glaive codefmt google_java_executable="java -jar /Users/aautushka/bin/google-java-format-1.6-all-deps.jar"
+
 filetype plugin indent on    " required
 " To ignore plugin indent changes, instead use:
 "filetype plugin on
@@ -115,6 +131,8 @@ let g:seoul256_background = 235
 " colorscheme seoul256
 " colorscheme kolor
 colorscheme dracula
+" colorscheme pencil
+" colorscheme off
 set background=dark
 
 " nmap <S-Enter> O<Esc>
@@ -264,14 +282,25 @@ endfunction
 " Search for files in project root directory (use git root)
 command! ProjectFiles execute 'Files' s:find_git_root()
 
-nnoremap <silent> <Leader>l :Lines<CR>
+nnoremap <silent> <Leader>l :Lines <CR>
 nnoremap <Leader>ss :SideSearch <C-r><C-w><CR> | wincmd p
 
 " look for word under cursor
 nnoremap <silent> <Leader>ag :Ag <C-R><C-W><CR>
+nnoremap <silent> <Leader>rg :Rg <C-R><C-W><CR>
+nnoremap <C-g> :Rg<Cr>
 
 " do not look in files names when doing fzf with :Ag
 command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : --nth 4..'}, <bang>0)
+
+command! -bang -nargs=* Rg
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always --smart-case --fixed-strings --ignore-case '.shellescape(<q-args>), 1,
+  \   <bang>0 ? fzf#vim#with_preview({'options': '--delimiter : --nth 4..'}, 'up:60%')
+  \           : fzf#vim#with_preview({'options': '--delimiter : --nth 4..'}, 'right:50%:hidden', '?'),
+  \   <bang>0)
+
+set grepprg=rg\ --vimgrep
 
 "auto close {
 function! s:CloseBracket()
@@ -442,6 +471,9 @@ let c_no_curly_error = 1
 set cindent
 set smartindent
 
+set ignorecase
+set smartcase
+
 nnoremap <Leader>cf :ClangFormat<CR>
 
 " center screen after jumping to a mark
@@ -480,3 +512,29 @@ let g:cursorword_highlight = 1
 
 " vim-oblique
 " let g:oblique#incsearch_highlight_all = 1
+
+" improve performance 
+let loaded_matchparen=1 " Don't load matchit.vim (paren/bracket matching)
+set noshowmatch         " Don't match parentheses/brackets
+set nocursorline        " Don't paint cursor line
+set nocursorcolumn      " Don't paint cursor column
+" set lazyredraw          " Wait to redraw
+set scrolljump=8        " Scroll 8 lines at a time at bottom/top
+let html_no_rendering=1 " Don't render italic, bold, links in HTML
+
+" vim-sneak configuration
+hi! link Sneak Search
+let g:sneak#use_ic_scs = 1
+
+augroup autoformat_settings
+  " autocmd FileType bzl AutoFormatBuffer buildifier
+  autocmd FileType c,cpp AutoFormatBuffer clang-format
+  " autocmd BufRead *.cc *.cpp *.h *.hpp *.cxx *.c AutoFormatBuffer clang-format
+  " autocmd FileType dart AutoFormatBuffer dartfmt
+  " autocmd FileType go AutoFormatBuffer gofmt
+  " autocmd FileType gn AutoFormatBuffer gn
+  " autocmd FileType html,css,json AutoFormatBuffer js-beautify
+  " autocmd FileType java AutoFormatBuffer google-java-format
+  " autocmd FileType python AutoFormatBuffer yapf
+  " Alternative: autocmd FileType python AutoFormatBuffer autopep8
+augroup END
