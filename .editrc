@@ -1,0 +1,3 @@
+lldb:bind -v
+lldb:bind ^I lldb_complete
+lldb:bind ^P ed-command
