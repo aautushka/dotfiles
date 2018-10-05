@@ -113,6 +113,8 @@ alias vimrc="vim ~/.vimrc"
 alias zshrc="vim ~/.zshrc"
 alias tmuxconf="vim ~/.tmux.conf"
 
+alias ag="ag --hidden --follow"
+
 #This is based on: https://github.com/ranger/ranger/blob/master/examples/bash_automatic_cd.sh
 #Paste this into your .zshrc:
 function ranger-cd 

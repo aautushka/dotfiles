@@ -47,7 +47,7 @@ Plugin 'junegunn/seoul256.vim' " color sheme
 Plugin 'tpope/vim-surround' 
 Plugin 'benmills/vimux' " vim-tmux integration
 Plugin 'gabesoft/vim-ags' " integrates the silver searcher 
-Plugin 'airblade/vim-gitgutter' " show git diff
+" Plugin 'airblade/vim-gitgutter' " show git diff
 Plugin 'craigemery/vim-autotag' " automatically update tags
 Plugin 'haya14busa/incsearch.vim' " incrementally hightligh all searches
 Plugin 'tpope/vim-unimpaired' " some usefule key bindings
@@ -181,7 +181,7 @@ set splitright
 nnoremap <Leader>r :VimuxPromptCommand<CR>
 nnoremap <Leader>j :VimuxRunLastCommand<CR>
 nnoremap <Leader>c :VimuxInterruptRunner<CR>
-nnoremap <Space> :VimuxRunLastCommand<CR>
+nnoremap <Space> :wa<CR>:VimuxRunLastCommand<CR>
 
 " nnoremap <c-i> :SideSearch 
 
