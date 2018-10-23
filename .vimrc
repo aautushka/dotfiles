@@ -21,6 +21,11 @@ set tabstop=4
 set shiftwidth=4
 set expandtab
 
+" faster redraw
+" https://eduncan911.com/software/fix-slow-scrolling-in-vim-and-neovim.html
+set lazyredraw
+set synmaxcol=128
+syntax sync minlines=256
 
 set nocompatible              " be iMproved, required
 filetype off                  " required
@@ -528,7 +533,7 @@ let g:sneak#use_ic_scs = 1
 
 augroup autoformat_settings
   " autocmd FileType bzl AutoFormatBuffer buildifier
-  autocmd FileType c,cpp AutoFormatBuffer clang-format
+  autocmd FileType c,cpp,objc AutoFormatBuffer clang-format
   " autocmd BufRead *.cc *.cpp *.h *.hpp *.cxx *.c AutoFormatBuffer clang-format
   " autocmd FileType dart AutoFormatBuffer dartfmt
   " autocmd FileType go AutoFormatBuffer gofmt
@@ -538,3 +543,6 @@ augroup autoformat_settings
   " autocmd FileType python AutoFormatBuffer yapf
   " Alternative: autocmd FileType python AutoFormatBuffer autopep8
 augroup END
+
+" cursorline style
+" hi CursorLine term =bold cterm=bold guibg=Grey40 ctermbg=234

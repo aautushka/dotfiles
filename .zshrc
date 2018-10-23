@@ -431,7 +431,18 @@ alias ldd="otool -L"
 j() {
     if [[ "$#" -ne 0 ]]; then
         cd $(autojump $@)
+        tput bold; tput setaf 8; pwd
         return
     fi
     cd "$(autojump -s | grep '^[0-9]' | sed 's/^[^\/]*//' | grep "^/" |  fzf --height 40% --nth 1.. --reverse --inline-info +s --tac --query "${*##-* }" )"
 }
+
+export MPSCNN="/System/Library/Frameworks/MetalPerformanceShaders.framework/Frameworks/MPSCore.framework/"
+
+alias mpscnn="cd $MPSCNN"
+
+dump-mlmodel() {
+  command=$(echo "import coremltools;print coremltools.utils.load_spec('"$1"')")
+  python2 -c "$command" 2>/dev/null
+}
+
