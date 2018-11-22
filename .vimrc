@@ -21,12 +21,6 @@ set tabstop=4
 set shiftwidth=4
 set expandtab
 
-" faster redraw
-" https://eduncan911.com/software/fix-slow-scrolling-in-vim-and-neovim.html
-set lazyredraw
-set synmaxcol=128
-syntax sync minlines=256
-
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
@@ -298,9 +292,14 @@ nnoremap <C-g> :Rg<Cr>
 " do not look in files names when doing fzf with :Ag
 command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : --nth 4..'}, <bang>0)
 
+let g:rg_command = '
+  \ rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --follow --color=always  --smart-case
+  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java}"
+  \ -g "!Pods" '
+
 command! -bang -nargs=* Rg
   \ call fzf#vim#grep(
-  \   'rg --column --line-number --no-heading --color=always --smart-case --fixed-strings --ignore-case '.shellescape(<q-args>), 1,
+  \   g:rg_command. shellescape(<q-args>), 1,
   \   <bang>0 ? fzf#vim#with_preview({'options': '--delimiter : --nth 4..'}, 'up:60%')
   \           : fzf#vim#with_preview({'options': '--delimiter : --nth 4..'}, 'right:50%:hidden', '?'),
   \   <bang>0)
