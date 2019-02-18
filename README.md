@@ -9,3 +9,9 @@ git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 ```
 :PluginInstall
 ```
+
+* Use system clipboard in tmux on MacOS
+
+```
+brew install reattach-to-user-namespace
+```
