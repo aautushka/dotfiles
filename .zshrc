@@ -412,6 +412,7 @@ alias es.health="curl -XGET 'localhost:9200/_cluster/health?pretty'"
 # git aliases
 alias git.cache="git config credential.helper 'cache --timeout=3000000'"
 alias st="git status -s"
+alias gamd='git status --short -- . | grep "^\\s*[MDA]M\?\\s*" | sed "s|^ *[MDA]* *||g" | xargs git add'
 
 # git clone https://github.com/hkbakke/bash-insulter.git bash-insulter
 if [ -f $HOME/bash-insulter/src/bash.command-not-found ]; then
@@ -446,3 +447,9 @@ dump-mlmodel() {
   python2 -c "$command" 2>/dev/null
 }
 
+# pyenv shims
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+# pyenv shims
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
