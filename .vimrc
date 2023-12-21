@@ -294,7 +294,7 @@ command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : 
 
 let g:rg_command = '
   \ rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --follow --color=always  --smart-case
-  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java}"
+  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java,py,js,ts}"
   \ -g "!Pods" '
 
 command! -bang -nargs=* Rg
