@@ -261,6 +261,10 @@ fkill()
 alias vimu="vim -u NONE"
 alias v="vim"
 alias vi=vim
+vmod() {
+    git status -s -- $1 | grep "^ *M" | sed "s/.*  *//g" | tr '\n' ' ' | xargs -o vim
+}
+
 alias make="make -j12"
 
 # autojump - a faster way to navigate your filesystem
