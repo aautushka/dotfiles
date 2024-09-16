@@ -64,6 +64,9 @@ Plugin 'majutsushi/tagbar' " ctags viewer
 Plugin 'ddrscott/vim-side-search'
 Plugin 'rafi/awesome-vim-colorschemes'
 Plugin 'fatih/vim-go'
+
+" this one might be worth checking out as well
+" Plugin  'govim/govim'
 Plugin 'gfontenot/vim-xcode'
 
 " show indentations, triggered by <leader>ig
@@ -113,6 +116,19 @@ Plugin 'google/vim-codefmt'
 " Also add Glaive, which is used to configure codefmt's maktaba flags. See
 " `:help :Glaive` for usage.
 Plugin 'google/vim-glaive'
+
+" JavaScript and TypeScript development
+" https://thoughtbot.com/blog/modern-typescript-and-react-development-in-vim
+Plugin 'pangloss/vim-javascript'
+Plugin 'leafgarland/typescript-vim'
+Plugin 'MaxMEllon/vim-jsx-pretty'
+Plugin 'peitalin/vim-jsx-typescript'
+Plugin 'styled-components/vim-styled-components', { 'branch': 'main' }
+Plugin 'jparise/vim-graphql'
+autocmd BufEnter *.{js,jsx,ts,tsx} :syntax sync fromstart
+autocmd BufLeave *.{js,jsx,ts,tsx} :syntax sync clear
+
+Plugin 'stephpy/vim-yaml'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -294,7 +310,7 @@ command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : 
 
 let g:rg_command = '
   \ rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --follow --color=always  --smart-case
-  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java,py,js,ts}"
+  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java,py,js,ts,kt,go,json}"
   \ -g "!Pods" '
 
 command! -bang -nargs=* Rg
@@ -532,7 +548,7 @@ let g:sneak#use_ic_scs = 1
 
 augroup autoformat_settings
   " autocmd FileType bzl AutoFormatBuffer buildifier
-  autocmd FileType c,cpp,objc AutoFormatBuffer clang-format
+  autocmd FileType h,c,cpp,objc AutoFormatBuffer clang-format
   " autocmd BufRead *.cc *.cpp *.h *.hpp *.cxx *.c AutoFormatBuffer clang-format
   " autocmd FileType dart AutoFormatBuffer dartfmt
   " autocmd FileType go AutoFormatBuffer gofmt

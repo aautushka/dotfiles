@@ -99,6 +99,7 @@ source $ZSH/oh-my-zsh.sh
 
 # set default text editor
 export EDITOR=$(which vim)
+export VISUAL=$(which vim)
 
 # use vim key bindings
 bindkey -v
@@ -269,10 +270,7 @@ alias make="make -j12"
 
 # autojump - a faster way to navigate your filesystem
 # https://github.com/wting/autojump
-# linux
-[[ -s $HOME/.autojump/etc/profile.d/autojump.sh ]] && source $HOME/.autojump/etc/profile.d/autojump.sh
-# macos
-[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
 autoload -U compinit && compinit -u
 
 
@@ -417,6 +415,10 @@ alias es.health="curl -XGET 'localhost:9200/_cluster/health?pretty'"
 alias git.cache="git config credential.helper 'cache --timeout=3000000'"
 alias st="git status -s"
 alias gamd='git status --short -- . | grep "^\\s*[MDA]M\?\\s*" | sed "s|^ *[MDA]* *||g" | xargs git add'
+alias blackmd='git status --short -- . | grep "^\\s*[MDA]M\?\\s*" | sed "s|^ *[MDA]* *||g" | grep py$ | xargs black'
+alias isortmd='git status --short -- . | grep "^\\s*[MDA]M\?\\s*" | sed "s|^ *[MDA]* *||g" | grep py$ | xargs isort'
+alias prettiermd='git status --short -- . | grep "^\\s*[MDA]M\?\\s*" | sed "s|^ *[MDA]* *||g" | grep -E "(\.js$|\.ts$)" | xargs npx prettier --write '
+alias formatmd='blackmd; isortmd; prettiermd'
 
 # git clone https://github.com/hkbakke/bash-insulter.git bash-insulter
 if [ -f $HOME/bash-insulter/src/bash.command-not-found ]; then
@@ -457,3 +459,49 @@ command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 # pyenv shims
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+
+# Wasmer
+export WASMER_DIR="/Users/anton/.wasmer"
+[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
+export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
+
+source /Users/anton/.docker/init-zsh.sh || true # Added by Docker Desktop
+
+export VCPKG_ROOT=$HOME/.vcpkg/packages
+
+if [ -d "/opt/homebrew/opt/ruby/bin" ]; then
+  export PATH=/opt/homebrew/opt/ruby/bin:$PATH
+  export PATH=`gem environment gemdir`/bin:$PATH
+fi
+
+# for android react-native development
+# Android Studio
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+# flutter stuff
+export PATH=$HOME/opt/flutter/bin:$PATH
+
+# gitlab.com ssh keys
+# eval $(ssh-agent -s)
+
+# golang
+export GOROOT=/usr/local/go
+export PATH=$GOROOT/bin:$PATH
+
+# direnv
+_direnv_hook() {
+  trap -- '' SIGINT
+  eval "$("/opt/homebrew/bin/direnv" export zsh)"
+  trap - SIGINT
+}
+typeset -ag precmd_functions
+if (( ! ${precmd_functions[(I)_direnv_hook]} )); then
+  precmd_functions=(_direnv_hook $precmd_functions)
+fi
+typeset -ag chpwd_functions
+if (( ! ${chpwd_functions[(I)_direnv_hook]} )); then
+  chpwd_functions=(_direnv_hook $chpwd_functions)
+fi
