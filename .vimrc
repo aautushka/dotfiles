@@ -129,6 +129,7 @@ autocmd BufEnter *.{js,jsx,ts,tsx} :syntax sync fromstart
 autocmd BufLeave *.{js,jsx,ts,tsx} :syntax sync clear
 
 Plugin 'stephpy/vim-yaml'
+Plugin 'davidhalter/jedi-vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -561,3 +562,9 @@ augroup END
 
 " cursorline style
 " hi CursorLine term =bold cterm=bold guibg=Grey40 ctermbg=234
+
+" jedi-vim configurations
+let g:jedi#popup_select_first = 1
+let g:jedi#popup_on_dot = 1
+let g:jedi#show_call_signatures = 2
+let g:jedi#completions_command = "<c-h>"
