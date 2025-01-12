@@ -194,8 +194,8 @@ set splitbelow
 set splitright
 
 " vimux key bindings
-nnoremap <Leader>r :VimuxPromptCommand<CR>
-nnoremap <Leader>j :VimuxRunLastCommand<CR>
+nnoremap <Leader>r :wa<CR>:VimuxPromptCommand<CR>
+nnoremap <Leader>j :wa<CR>:VimuxRunLastCommand<CR>
 nnoremap <Leader>c :VimuxInterruptRunner<CR>
 nnoremap <Space> :wa<CR>:VimuxRunLastCommand<CR>
 
@@ -311,7 +311,7 @@ command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : 
 
 let g:rg_command = '
   \ rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --follow --color=always  --smart-case
-  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java,py,js,ts,kt,go,json}"
+  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java,py,js,kt,ts,go,json}"
   \ -g "!Pods" '
 
 command! -bang -nargs=* Rg
