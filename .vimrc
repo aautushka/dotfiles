@@ -568,3 +568,7 @@ let g:jedi#popup_select_first = 1
 let g:jedi#popup_on_dot = 1
 let g:jedi#show_call_signatures = 2
 let g:jedi#completions_command = "<c-h>"
+
+" for rust auto-complete
+Plugin 'neoclide/coc.nvim'
+Plugin 'rust-lang/rust.vim'
