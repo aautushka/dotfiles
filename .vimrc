@@ -44,7 +44,8 @@ Plugin 'junegunn/seoul256.vim' " color sheme
 
 " Plugin 'junegunn/indentLine' " display identation levels EATS CPU
 Plugin 'tpope/vim-surround' 
-Plugin 'benmills/vimux' " vim-tmux integration
+Plugin 'aautushka/vimux' " vim-tmux integration
+" Plugin 'benmills/vimux' " vim-tmux integration
 Plugin 'gabesoft/vim-ags' " integrates the silver searcher 
 " Plugin 'airblade/vim-gitgutter' " show git diff
 Plugin 'craigemery/vim-autotag' " automatically update tags
@@ -310,8 +311,8 @@ nnoremap <C-g> :Rg<Cr>
 command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : --nth 4..'}, <bang>0)
 
 let g:rg_command = '
-  \ rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --follow --color=always  --smart-case
-  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java,py,js,kt,ts,go,json}"
+  \ rg --column --line-number --no-heading --fixed-strings --ignore-case --follow --color=always  --smart-case
+  \ -g "*.{cc,cpp,h,hh,cxx,m,mm,cc,hxx,java,py,js,kt,ts,go,json,rs}"
   \ -g "!Pods" '
 
 command! -bang -nargs=* Rg
@@ -572,3 +573,19 @@ let g:jedi#completions_command = "<c-h>"
 " for rust auto-complete
 Plugin 'neoclide/coc.nvim'
 Plugin 'rust-lang/rust.vim'
+let g:coc_start_at_startup=0
+
+" exciting AI stuff
+" :help llama_config
+let g:llama_config = { 'show_info': 0 }
+Plugin 'ggml-org/llama.vim'
+" let g:llama_config.keymap_accept_full = "<C-S>"
+
+" pytest
+Plugin 'vim-test/vim-test'
+let test#strategy = "vimux"
+nmap <silent> <leader>t :TestNearest<CR>
+" nmap <silent> <leader>T :TestFile<CR>
+" nmap <silent> <leader>a :TestSuite<CR>
+" nmap <silent> <leader>l :TestLast<CR>
+" nmap <silent> <leader>g :TestVisit<CR>
