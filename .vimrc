@@ -184,8 +184,11 @@ vmap \\ :s:^//::<CR>
 vmap " :s/^/" /<CR>
 vmap ' :s/^" //<CR>
 
-" set clipboard=unnamedplus
-set clipboard=unnamed
+" this is for ubuntu wsl
+set clipboard=unnamedplus
+
+" this works on mac
+"set clipboard=unnamed
 
 " navigate splits 
 nnoremap <c-h> <c-w>w
@@ -585,7 +588,77 @@ Plugin 'ggml-org/llama.vim'
 Plugin 'vim-test/vim-test'
 let test#strategy = "vimux"
 nmap <silent> <leader>t :TestNearest<CR>
-" nmap <silent> <leader>T :TestFile<CR>
-" nmap <silent> <leader>a :TestSuite<CR>
-" nmap <silent> <leader>l :TestLast<CR>
-" nmap <silent> <leader>g :TestVisit<CR>
+nmap <silent> <leader>T :TestFile<CR>
+nmap <silent> <leader>a :TestSuite<CR>
+nmap <silent> <leader>l :TestLast<CR>
+nmap <silent> <leader>g :TestVisit<CR>
+
+" wsl clipboard
+if has('clipboard')
+    let g:clipboard = {
+      \   'name': 'WSLClipboard',
+      \   'copy': {
+      \      '+': 'clip.exe',
+      \      '*': 'clip.exe',
+      \    },
+      \   'paste': {
+      \      '+': 'powershell.exe Get-Clipboard',
+      \      '*': 'powershell.exe Get-Clipboard',
+      \   },
+      \ }
+endif
+
+Plugin 'kburdett/vim-nuuid'
+
+" c++ development
+" have this in you project dir so clangd can find build database
+" ln -sf build/compile_commands.json ./compile_commands.json
+"
+Plugin 'prabirshrestha/vim-lsp'
+Plugin 'mattn/vim-lsp-settings'
+
+if executable('clangd')
+  function! s:clangd_root(...) abort
+    " Current buffer’s absolute path
+    let l:path = expand('%:p')
+
+    " Try nearest project markers
+    for l:cand in ['compile_commands.json', '.clangd', '.git']
+      let l:dir = lsp#utils#find_nearest_parent_file(l:path, l:cand)
+      if type(l:dir) == type('') && !empty(l:dir)
+        return lsp#utils#path_to_uri(l:dir)
+      endif
+    endfor
+
+    " Fallback to current working dir
+    return lsp#utils#path_to_uri(getcwd())
+  endfunction
+
+  augroup LspClangd
+    autocmd!
+    autocmd User lsp_setup call lsp#register_server({
+    \ 'name': 'clangd',
+    \ 'cmd': ['clangd', '--background-index', '--clang-tidy', '--log=verbose'],
+    \ 'whitelist': ['c','cpp','objc','objcpp'],
+    \ 'initialization_options': {},
+    \ 'root_uri': function('s:clangd_root'),
+    \ })
+  augroup END
+endif
+
+" Basic keymaps
+nnoremap <silent> gd <plug>(lsp-definition)
+nnoremap <silent> gr <plug>(lsp-references)
+nnoremap <silent> gi <plug>(lsp-implementation)
+nnoremap <silent> K  <plug>(lsp-hover)
+
+" Optional diagnostics
+let g:lsp_diagnostics_enabled = 1
+let g:lsp_diagnostics_signs_enabled = 0
+let g:lsp_diagnostics_echo_cursor = 0
+let g:lsp_diagnostics_virtual_text_enabled = 0
+let g:lsp_document_code_action_signs_enabled = 0
+" let g:lsp_log_verbose = 1
+" let g:lsp_log_file = expand('~/.cache/vim-lsp.log')
+
+nnoremap <leader>ll :LspDocumentDiagnostics<CR>
