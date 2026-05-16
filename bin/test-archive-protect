@@ -1,107 +1,181 @@
 #!/usr/bin/env bash
-# End-to-end test for archive-protect:
-#   1. Protect the test-archive fixture
-#   2. Relocate both dirs to /tmp
-#   3. Corrupt a file
-#   4. verify.sh detects corruption
-#   5. repair.sh restores the file
-#   6. verify.sh passes clean
+# End-to-end tests for archive-protect (directory mode and single-file mode).
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ARCHIVE_PROTECT="${SCRIPT_DIR}/archive-protect"
 FIXTURE="${SCRIPT_DIR}/../test-archive"
-FIXTURE="$(cd "$FIXTURE" && pwd)"
+FIXTURE="$(cd "$FIXTURE" && pwd -P)"
 
 WORK_DIR="$(mktemp -d /tmp/archive-protect-test.XXXXXX)"
-trap 'rm -rf "$WORK_DIR"' EXIT
+NEW_HOME="$(mktemp -d /tmp/archive-protect-relocated.XXXXXX)"
+trap 'rm -rf "$WORK_DIR" "$NEW_HOME"' EXIT
 
 pass() { echo "  [PASS] $*"; }
 fail() { echo "  [FAIL] $*" >&2; exit 1; }
 step() { echo; echo "--- $* ---"; }
 
-# ── 1. copy fixture into work dir (simulates a real archive you own) ──────────
-step "Setup: copy fixture to $WORK_DIR"
+hash_of() {
+    sha256sum "$1" 2>/dev/null || shasum -a 256 "$1"
+}
+
+########################################################################
+# TEST 1 — directory mode
+########################################################################
+echo "════════════════════════════════════════"
+echo " TEST 1: directory mode"
+echo "════════════════════════════════════════"
+
+# ── 1. copy fixture into work dir ────────────────────────────────────────────
+step "Setup"
 cp -r "$FIXTURE" "$WORK_DIR/test-archive"
 ARCHIVE="${WORK_DIR}/test-archive"
-echo "  archive: $ARCHIVE"
 ls -lR "$ARCHIVE"
 
-# ── 2. protect ────────────────────────────────────────────────────────────────
-step "Protect archive (50% redundancy)"
+# ── 2. protect ───────────────────────────────────────────────────────────────
+step "Protect directory (50% redundancy)"
 "$ARCHIVE_PROTECT" "$ARCHIVE" 50
 PARSET="${WORK_DIR}/test-archive.parset"
-[[ -d "$PARSET" ]] || fail "parset dir not created"
+[[ -d "$PARSET" ]]                       || fail "parset dir not created"
 [[ -f "${PARSET}/test-archive.sha256" ]] || fail "manifest not created"
 [[ -f "${PARSET}/test-archive.par2" ]]   || fail "par2 index not created"
 [[ -f "${PARSET}/verify.sh" ]]           || fail "verify.sh not created"
 [[ -f "${PARSET}/repair.sh" ]]           || fail "repair.sh not created"
 pass "parset created"
 
-# ── 3. initial verify ─────────────────────────────────────────────────────────
-step "Initial verify (should be clean)"
+# ── 3. initial verify ────────────────────────────────────────────────────────
+step "Initial verify"
 "${PARSET}/verify.sh" || fail "initial verify failed"
 pass "initial verify OK"
 
-# ── 4. relocate ───────────────────────────────────────────────────────────────
-step "Relocate both dirs to a new location"
-NEW_HOME="$(mktemp -d /tmp/archive-protect-relocated.XXXXXX)"
-# new home is cleaned up via WORK_DIR trap only if we nest — use separate trap
-trap 'rm -rf "$WORK_DIR" "$NEW_HOME"' EXIT
-
+# ── 4. relocate ──────────────────────────────────────────────────────────────
+step "Relocate to $NEW_HOME"
 mv "$ARCHIVE" "$NEW_HOME/test-archive"
 mv "$PARSET"  "$NEW_HOME/test-archive.parset"
 ARCHIVE="${NEW_HOME}/test-archive"
 PARSET="${NEW_HOME}/test-archive.parset"
-echo "  relocated to: $NEW_HOME"
 pass "relocation done"
 
-# ── 5. verify after relocation (should still be clean) ────────────────────────
+# ── 5. verify after relocation ───────────────────────────────────────────────
 step "Verify after relocation"
 "${PARSET}/verify.sh" || fail "post-relocation verify failed"
 pass "post-relocation verify OK"
 
-# ── 6. corrupt a file ─────────────────────────────────────────────────────────
-step "Corrupt test-archive/notes.txt"
+# ── 6. corrupt ───────────────────────────────────────────────────────────────
+step "Corrupt notes.txt"
 CORRUPT_FILE="${ARCHIVE}/notes.txt"
-ORIGINAL_SIZE=$(wc -c < "$CORRUPT_FILE")
-# overwrite 256 bytes in the middle of the file
-OFFSET=$(( ORIGINAL_SIZE / 3 ))
-python3 -c "
-f = open('${CORRUPT_FILE}', 'r+b')
-f.seek(${OFFSET})
-f.write(b'\\x00' * 256)
-f.close()
-"
-echo "  wrote 256 null bytes at offset ${OFFSET} of ${CORRUPT_FILE}"
+ORIGINAL_HASH="$(hash_of "$CORRUPT_FILE")"; ORIGINAL_HASH="${ORIGINAL_HASH%% *}"
+OFFSET=$(( $(wc -c < "$CORRUPT_FILE") / 3 ))
+python3 -c "f=open('${CORRUPT_FILE}','r+b'); f.seek(${OFFSET}); f.write(b'\\x00'*256); f.close()"
+echo "  wrote 256 null bytes at offset ${OFFSET}"
 pass "file corrupted"
 
-# ── 7. verify detects corruption ──────────────────────────────────────────────
-step "Verify should detect corruption"
+# ── 7. verify detects corruption ─────────────────────────────────────────────
+step "Verify detects corruption"
 if "${PARSET}/verify.sh" 2>/dev/null; then
     fail "verify should have failed but passed"
 fi
 pass "corruption detected"
 
-# ── 8. repair ─────────────────────────────────────────────────────────────────
-step "Repair with PAR2"
+# ── 8. repair ────────────────────────────────────────────────────────────────
+step "Repair"
 "${PARSET}/repair.sh" || fail "repair failed"
 pass "repair completed"
 
-# ── 9. verify restored file matches original ──────────────────────────────────
-step "Verify restored file matches original"
-ORIGINAL_HASH=$(sha256sum "$FIXTURE/notes.txt" 2>/dev/null || shasum -a 256 "$FIXTURE/notes.txt")
-ORIGINAL_HASH="${ORIGINAL_HASH%% *}"
-RESTORED_HASH=$(sha256sum "$CORRUPT_FILE" 2>/dev/null || shasum -a 256 "$CORRUPT_FILE")
-RESTORED_HASH="${RESTORED_HASH%% *}"
+# ── 9. hash matches original ─────────────────────────────────────────────────
+step "Restored file matches original"
+RESTORED_HASH="$(hash_of "$CORRUPT_FILE")"; RESTORED_HASH="${RESTORED_HASH%% *}"
 [[ "$ORIGINAL_HASH" == "$RESTORED_HASH" ]] \
-    || fail "restored file hash mismatch: expected $ORIGINAL_HASH, got $RESTORED_HASH"
+    || fail "hash mismatch: expected $ORIGINAL_HASH, got $RESTORED_HASH"
 pass "restored file matches original"
 
-# ── 10. final verify ──────────────────────────────────────────────────────────
-step "Final verify (should be clean)"
+# ── 10. final verify ─────────────────────────────────────────────────────────
+step "Final verify"
 "${PARSET}/verify.sh" || fail "final verify failed"
+pass "final verify OK"
+
+########################################################################
+# TEST 2 — single-file mode
+########################################################################
+echo
+echo "════════════════════════════════════════"
+echo " TEST 2: single-file mode"
+echo "════════════════════════════════════════"
+
+# ── 1. create test file ──────────────────────────────────────────────────────
+step "Setup"
+FILE_DIR="${WORK_DIR}/filetest"
+mkdir -p "$FILE_DIR"
+python3 -c "
+import random, string
+data = ''.join(random.choices(string.printable, k=4000))
+open('${FILE_DIR}/archive.zip', 'w').write(data)
+"
+TARGET_FILE="${FILE_DIR}/archive.zip"
+echo "  created: $TARGET_FILE ($(wc -c < "$TARGET_FILE") bytes)"
+
+# ── 2. protect ───────────────────────────────────────────────────────────────
+step "Protect single file (50% redundancy)"
+"$ARCHIVE_PROTECT" "$TARGET_FILE" 50
+FILE_PARSET="${FILE_DIR}/archive.zip.parset"
+[[ -d "$FILE_PARSET" ]]                          || fail "parset dir not created"
+[[ -f "${FILE_PARSET}/archive.zip.sha256" ]]     || fail "manifest not created"
+[[ -f "${FILE_PARSET}/archive.zip.par2" ]]       || fail "par2 index not created"
+[[ -f "${FILE_PARSET}/verify.sh" ]]              || fail "verify.sh not created"
+[[ -f "${FILE_PARSET}/repair.sh" ]]              || fail "repair.sh not created"
+pass "parset created"
+
+# ── 3. initial verify ────────────────────────────────────────────────────────
+step "Initial verify"
+"${FILE_PARSET}/verify.sh" || fail "initial verify failed"
+pass "initial verify OK"
+
+# ── 4. relocate ──────────────────────────────────────────────────────────────
+step "Relocate to $NEW_HOME/filetest"
+RELOCATED_DIR="${NEW_HOME}/filetest"
+mkdir -p "$RELOCATED_DIR"
+mv "$TARGET_FILE"  "$RELOCATED_DIR/archive.zip"
+mv "$FILE_PARSET"  "$RELOCATED_DIR/archive.zip.parset"
+TARGET_FILE="${RELOCATED_DIR}/archive.zip"
+FILE_PARSET="${RELOCATED_DIR}/archive.zip.parset"
+pass "relocation done"
+
+# ── 5. verify after relocation ───────────────────────────────────────────────
+step "Verify after relocation"
+"${FILE_PARSET}/verify.sh" || fail "post-relocation verify failed"
+pass "post-relocation verify OK"
+
+# ── 6. corrupt ───────────────────────────────────────────────────────────────
+step "Corrupt archive.zip"
+FILE_HASH="$(hash_of "$TARGET_FILE")"; FILE_HASH="${FILE_HASH%% *}"
+OFFSET=$(( $(wc -c < "$TARGET_FILE") / 3 ))
+python3 -c "f=open('${TARGET_FILE}','r+b'); f.seek(${OFFSET}); f.write(b'\\x00'*256); f.close()"
+echo "  wrote 256 null bytes at offset ${OFFSET}"
+pass "file corrupted"
+
+# ── 7. verify detects corruption ─────────────────────────────────────────────
+step "Verify detects corruption"
+if "${FILE_PARSET}/verify.sh" 2>/dev/null; then
+    fail "verify should have failed but passed"
+fi
+pass "corruption detected"
+
+# ── 8. repair ────────────────────────────────────────────────────────────────
+step "Repair"
+"${FILE_PARSET}/repair.sh" || fail "repair failed"
+pass "repair completed"
+
+# ── 9. hash matches original ─────────────────────────────────────────────────
+step "Restored file matches original"
+RESTORED_HASH="$(hash_of "$TARGET_FILE")"; RESTORED_HASH="${RESTORED_HASH%% *}"
+[[ "$FILE_HASH" == "$RESTORED_HASH" ]] \
+    || fail "hash mismatch: expected $FILE_HASH, got $RESTORED_HASH"
+pass "restored file matches original"
+
+# ── 10. final verify ─────────────────────────────────────────────────────────
+step "Final verify"
+"${FILE_PARSET}/verify.sh" || fail "final verify failed"
 pass "final verify OK"
 
 echo

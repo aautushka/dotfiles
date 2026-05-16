@@ -3,16 +3,16 @@ set -euo pipefail
 
 usage() {
     cat >&2 <<EOF
-Usage: $(basename "$0") <directory> [redundancy%]
+Usage: $(basename "$0") <directory|file> [redundancy%]
 
 Creates a SHA-256 manifest and PAR2 recovery set for archival.
-Output goes to <dirname>.parset/ alongside the target directory.
+Output goes to <name>.parset/ alongside the target.
 
-  directory    Read-only archive directory to protect
-  redundancy%  PAR2 redundancy level 1-100 (default: 10)
+  directory|file  Read-only archive directory or single file to protect
+  redundancy%     PAR2 redundancy level 1-100 (default: 10)
 
 To verify later (from anywhere):
-  <dirname>.parset/verify.sh
+  <name>.parset/verify.sh
 EOF
     exit 1
 }
@@ -21,10 +21,11 @@ die() { echo "error: $*" >&2; exit 1; }
 
 [[ $# -lt 1 || "${1:-}" == -h || "${1:-}" == --help ]] && usage
 
-TARGET_DIR="$1"
+TARGET="$1"
 REDUNDANCY="${2:-10}"
 
-[[ -d "$TARGET_DIR" ]] || die "'$TARGET_DIR' is not a directory"
+[[ -e "$TARGET" ]] || die "'$TARGET' does not exist"
+[[ -f "$TARGET" || -d "$TARGET" ]] || die "'$TARGET' is not a file or directory"
 [[ "$REDUNDANCY" =~ ^[1-9][0-9]*$ ]] || die "redundancy must be a positive integer, got: $REDUNDANCY"
 [[ "$REDUNDANCY" -le 100 ]] || die "redundancy must be <= 100, got: $REDUNDANCY"
 
@@ -39,25 +40,32 @@ else
     die "neither sha256sum nor shasum found"
 fi
 
-TARGET_DIR="$(cd "$TARGET_DIR" && pwd -P)"
-BASENAME="$(basename "$TARGET_DIR")"
-PARENT="$(dirname "$TARGET_DIR")"
+# Resolve to physical absolute path, then derive PARENT and BASENAME.
+if [[ -f "$TARGET" ]]; then
+    TARGET="$(cd "$(dirname "$TARGET")" && pwd -P)/$(basename "$TARGET")"
+    PARENT="$(dirname "$TARGET")"
+    BASENAME="$(basename "$TARGET")"
+    FILES=("$BASENAME")
+else
+    TARGET="$(cd "$TARGET" && pwd -P)"
+    PARENT="$(dirname "$TARGET")"
+    BASENAME="$(basename "$TARGET")"
+    declare -a FILES=()
+    while IFS= read -r -d '' f; do
+        f="${f#./}"
+        FILES+=("${BASENAME}/${f}")
+    done < <(cd "$TARGET" && find . -type f -print0 | sort -z)
+fi
+
 OUTDIR="${PARENT}/${BASENAME}.parset"
 
-echo "Target:     $TARGET_DIR"
+echo "Target:     $TARGET"
 echo "Output:     $OUTDIR"
 echo "Redundancy: ${REDUNDANCY}%"
 
 mkdir -p "$OUTDIR"
 
 MANIFEST="${OUTDIR}/${BASENAME}.sha256"
-
-# File paths relative to PARENT (e.g. "dirname/file.mov").
-declare -a FILES=()
-while IFS= read -r -d '' f; do
-    f="${f#./}"
-    FILES+=("${BASENAME}/${f}")
-done < <(cd "$TARGET_DIR" && find . -type f -print0 | sort -z)
 
 # --- SHA-256 manifest ---
 echo
