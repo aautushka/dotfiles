@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat >&2 <<EOF
+Usage: $(basename "$0") <directory> [redundancy%]
+
+Creates a SHA-256 manifest and PAR2 recovery set for archival.
+Output goes to <dirname>.parset/ alongside the target directory.
+
+  directory    Read-only archive directory to protect
+  redundancy%  PAR2 redundancy level 1-100 (default: 10)
+EOF
+    exit 1
+}
+
+die() { echo "error: $*" >&2; exit 1; }
+
+[[ $# -lt 1 || "${1:-}" == -h || "${1:-}" == --help ]] && usage
+
+TARGET_DIR="$1"
+REDUNDANCY="${2:-10}"
+
+[[ -d "$TARGET_DIR" ]] || die "'$TARGET_DIR' is not a directory"
+[[ "$REDUNDANCY" =~ ^[1-9][0-9]*$ ]] || die "redundancy must be a positive integer, got: $REDUNDANCY"
+[[ "$REDUNDANCY" -le 100 ]] || die "redundancy must be <= 100, got: $REDUNDANCY"
+
+command -v par2 >/dev/null 2>&1 \
+    || die "'par2' not found — install with: brew install par2"
+
+if command -v sha256sum >/dev/null 2>&1; then
+    SHA256_TOOL="sha256sum"
+elif command -v shasum >/dev/null 2>&1; then
+    SHA256_TOOL="shasum -a 256"
+else
+    die "neither sha256sum nor shasum found"
+fi
+
+TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+BASENAME="$(basename "$TARGET_DIR")"
+PARENT="$(dirname "$TARGET_DIR")"
+OUTDIR="${PARENT}/${BASENAME}.parset"
+
+echo "Target:     $TARGET_DIR"
+echo "Output:     $OUTDIR"
+echo "Redundancy: ${REDUNDANCY}%"
+
+mkdir -p "$OUTDIR"
+
+MANIFEST="${OUTDIR}/${BASENAME}.sha256"
+PAR2_BASE="${OUTDIR}/${BASENAME}"
+
+# --- SHA-256 manifest ---
+echo
+echo "==> Creating SHA-256 manifest..."
+# Run from PARENT so paths in the manifest are relative (e.g. dirname/subdir/file)
+(cd "$PARENT" && find "$BASENAME" -type f -print0 | sort -z | xargs -0 $SHA256_TOOL) > "$MANIFEST"
+FILE_COUNT=$(wc -l < "$MANIFEST" | tr -d ' ')
+echo "    ${FILE_COUNT} files checksummed"
+echo "    Written: $MANIFEST"
+
+# --- PAR2 recovery set ---
+echo
+echo "==> Creating PAR2 recovery set (${REDUNDANCY}% redundancy)..."
+
+# Collect all file paths into an array (portable — no mapfile, works on bash 3.2)
+declare -a FILES=()
+while IFS= read -r -d '' f; do
+    FILES+=("$f")
+done < <(cd "$PARENT" && find "$BASENAME" -type f -print0 | sort -z)
+
+echo "    ${#FILES[@]} files to protect"
+
+# Run par2create from PARENT so recorded paths match the manifest
+(cd "$PARENT" && par2create -r"${REDUNDANCY}" -n1 "${PAR2_BASE}.par2" "${FILES[@]}")
+
+echo
+echo "==> Done."
+ls -lh "$OUTDIR"
