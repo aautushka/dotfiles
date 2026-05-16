@@ -33,9 +33,9 @@ command -v par2 >/dev/null 2>&1 \
     || die "'par2' not found — install with: brew install par2"
 
 if command -v sha256sum >/dev/null 2>&1; then
-    SHA256_TOOL="sha256sum"
+    SHA256_CMD=(sha256sum)
 elif command -v shasum >/dev/null 2>&1; then
-    SHA256_TOOL="shasum -a 256"
+    SHA256_CMD=(shasum -a 256)
 else
     die "neither sha256sum nor shasum found"
 fi
@@ -45,7 +45,7 @@ if [[ -f "$TARGET" ]]; then
     TARGET="$(cd "$(dirname "$TARGET")" && pwd -P)/$(basename "$TARGET")"
     PARENT="$(dirname "$TARGET")"
     BASENAME="$(basename "$TARGET")"
-    FILES=("$BASENAME")
+    declare -a FILES=("$BASENAME")
 else
     TARGET="$(cd "$TARGET" && pwd -P)"
     PARENT="$(dirname "$TARGET")"
@@ -58,30 +58,48 @@ else
 fi
 
 OUTDIR="${PARENT}/${BASENAME}.parset"
+FILE_COUNT=${#FILES[@]}
+
+# Compute total source bytes to derive a sane block size (~512 KB target).
+# Setting block_count = file_count causes par2's bisection to pick block_size ≈
+# largest file, padding every small file to that size and ballooning recovery data.
+# Using total_bytes / 512KB gives block_size ≈ 512KB regardless of file count mix.
+TOTAL_BYTES=$(cd "$PARENT" && printf '%s\0' "${FILES[@]}" | xargs -0 stat -f '%z' | awk '{s+=$1} END {print int(s)}')
+TARGET_BLOCK_SIZE=$(( 512 * 1024 ))
+COMPUTED_COUNT=$(( (TOTAL_BYTES + TARGET_BLOCK_SIZE - 1) / TARGET_BLOCK_SIZE ))
+# Must be at least file_count (par2 requires ≥1 block per file) and at most 32768.
+BLOCK_COUNT=$(( COMPUTED_COUNT > FILE_COUNT ? COMPUTED_COUNT : FILE_COUNT ))
+BLOCK_COUNT=$(( BLOCK_COUNT > 32768 ? 32768 : BLOCK_COUNT ))
 
 echo "Target:     $TARGET"
 echo "Output:     $OUTDIR"
 echo "Redundancy: ${REDUNDANCY}%"
+echo "Files:      ${FILE_COUNT}"
+echo "Bytes:      ${TOTAL_BYTES}"
+echo "Blocks:     ${BLOCK_COUNT}"
 
+if [[ -d "$OUTDIR" ]]; then
+    die "'$OUTDIR' already exists — delete it first: rm -rf \"${OUTDIR}\""
+fi
 mkdir -p "$OUTDIR"
 
 MANIFEST="${OUTDIR}/${BASENAME}.sha256"
 
-# --- SHA-256 manifest ---
-echo
-echo "==> Creating SHA-256 manifest..."
-(cd "$PARENT" && $SHA256_TOOL "${FILES[@]}") > "$MANIFEST"
-FILE_COUNT=$(wc -l < "$MANIFEST" | tr -d ' ')
-echo "    ${FILE_COUNT} files checksummed"
-echo "    Written: $MANIFEST"
-
-# --- PAR2 recovery set ---
+# --- PAR2 recovery set (slow — do this first) ---
 echo
 echo "==> Creating PAR2 recovery set (${REDUNDANCY}% redundancy)..."
-echo "    ${#FILES[@]} files to protect"
 # -B must be an absolute path at create time; -B . is only expanded at verify time.
-# Using absolute PARENT keeps source files and .par2 output in the same basepath tree.
-(cd "$PARENT" && par2create -r"${REDUNDANCY}" -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
+# Pass FILES explicitly — do NOT use -R. With -R par2 recurses the entire basepath
+# (the parent directory), not just the target, processing gigabytes of unrelated data.
+(cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
+
+# --- SHA-256 manifest (fast — after par2 so interrupting par2 doesn't waste time here) ---
+echo
+echo "==> Creating SHA-256 manifest..."
+# printf|xargs batches filenames to stay under ARG_MAX — safe for 100k+ files.
+(cd "$PARENT" && printf '%s\0' "${FILES[@]}" | xargs -0 "${SHA256_CMD[@]}") > "$MANIFEST"
+echo "    ${FILE_COUNT} files checksummed"
+echo "    Written: $MANIFEST"
 
 # --- verify.sh ---
 # Written into .parset/ so the pair is self-contained after relocation.

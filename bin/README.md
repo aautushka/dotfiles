@@ -79,8 +79,8 @@ You cannot add more redundancy later without recreating the set.
 
 ## Constraints and caveats
 
-- **Re-running** overwrites the existing `.parset/` without warning. If you
-  need to update after adding files, just re-run the command.
+- **Re-running** on an existing `.parset/` is blocked — delete it first.
+  If you need to update after adding files, re-run from scratch.
 - **After repair**, PAR2 writes into the source directory (the `.1` backup
   files). If the directory has strict write protection, repair will fail.
 - **The `.parset/` itself is unprotected.** Storing it on the same physical
@@ -90,6 +90,10 @@ You cannot add more redundancy later without recreating the set.
 - **par2 file path limit**: all file paths (relative to the parent directory)
   must stay the same for verify/repair to match. Renaming files inside the
   archive invalidates the set.
+- **Block size**: the script targets ~512 KB PAR2 blocks (capped at 32 768
+  blocks). Directories with very few large files get proportionally larger
+  blocks. The parset size will always be approximately
+  `source_bytes × redundancy%`.
 
 ## Test
 
