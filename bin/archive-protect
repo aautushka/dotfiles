@@ -89,9 +89,16 @@ MANIFEST="${OUTDIR}/${BASENAME}.sha256"
 echo
 echo "==> Creating PAR2 recovery set (${REDUNDANCY}% redundancy)..."
 # -B must be an absolute path at create time; -B . is only expanded at verify time.
-# Pass FILES explicitly — do NOT use -R. With -R par2 recurses the entire basepath
-# (the parent directory), not just the target, processing gigabytes of unrelated data.
-(cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
+# Directory mode uses -R BASENAME (not -R alone) — passing BASENAME explicitly
+# constrains recursion to that directory only; -R without an explicit target
+# recurses the entire PARENT. This also sidesteps ARG_MAX (~1 MB on macOS) which
+# is hit at ~18k files if all paths are passed as arguments.
+# Single-file mode passes the one file explicitly; ARG_MAX is not a concern.
+if [[ -d "$TARGET" ]]; then
+    (cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -B "${PARENT}" -R "${BASENAME}.parset/${BASENAME}.par2" "${BASENAME}")
+else
+    (cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
+fi
 
 # --- SHA-256 manifest (fast — after par2 so interrupting par2 doesn't waste time here) ---
 echo
