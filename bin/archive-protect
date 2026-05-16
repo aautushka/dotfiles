@@ -10,6 +10,9 @@ Output goes to <dirname>.parset/ alongside the target directory.
 
   directory    Read-only archive directory to protect
   redundancy%  PAR2 redundancy level 1-100 (default: 10)
+
+To verify later (from anywhere):
+  <dirname>.parset/verify.sh
 EOF
     exit 1
 }
@@ -36,7 +39,7 @@ else
     die "neither sha256sum nor shasum found"
 fi
 
-TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+TARGET_DIR="$(cd "$TARGET_DIR" && pwd -P)"
 BASENAME="$(basename "$TARGET_DIR")"
 PARENT="$(dirname "$TARGET_DIR")"
 OUTDIR="${PARENT}/${BASENAME}.parset"
@@ -48,13 +51,18 @@ echo "Redundancy: ${REDUNDANCY}%"
 mkdir -p "$OUTDIR"
 
 MANIFEST="${OUTDIR}/${BASENAME}.sha256"
-PAR2_BASE="${OUTDIR}/${BASENAME}"
+
+# File paths relative to PARENT (e.g. "dirname/file.mov").
+declare -a FILES=()
+while IFS= read -r -d '' f; do
+    f="${f#./}"
+    FILES+=("${BASENAME}/${f}")
+done < <(cd "$TARGET_DIR" && find . -type f -print0 | sort -z)
 
 # --- SHA-256 manifest ---
 echo
 echo "==> Creating SHA-256 manifest..."
-# Run from PARENT so paths in the manifest are relative (e.g. dirname/subdir/file)
-(cd "$PARENT" && find "$BASENAME" -type f -print0 | sort -z | xargs -0 $SHA256_TOOL) > "$MANIFEST"
+(cd "$PARENT" && $SHA256_TOOL "${FILES[@]}") > "$MANIFEST"
 FILE_COUNT=$(wc -l < "$MANIFEST" | tr -d ' ')
 echo "    ${FILE_COUNT} files checksummed"
 echo "    Written: $MANIFEST"
@@ -62,17 +70,44 @@ echo "    Written: $MANIFEST"
 # --- PAR2 recovery set ---
 echo
 echo "==> Creating PAR2 recovery set (${REDUNDANCY}% redundancy)..."
-
-# Collect all file paths into an array (portable — no mapfile, works on bash 3.2)
-declare -a FILES=()
-while IFS= read -r -d '' f; do
-    FILES+=("$f")
-done < <(cd "$PARENT" && find "$BASENAME" -type f -print0 | sort -z)
-
 echo "    ${#FILES[@]} files to protect"
+# -B must be an absolute path at create time; -B . is only expanded at verify time.
+# Using absolute PARENT keeps source files and .par2 output in the same basepath tree.
+(cd "$PARENT" && par2create -r"${REDUNDANCY}" -n1 -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
 
-# Run par2create from PARENT so recorded paths match the manifest
-(cd "$PARENT" && par2create -r"${REDUNDANCY}" -n1 "${PAR2_BASE}.par2" "${FILES[@]}")
+# --- verify.sh ---
+# Written into .parset/ so the pair is self-contained after relocation.
+# -B . at verify/repair time DOES expand to CWD, so we cd to $PARENT first.
+cat > "${OUTDIR}/verify.sh" <<'VERIFY_EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+PARSET_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+PARENT="$(dirname "$PARSET_DIR")"
+NAME="${PARSET_DIR##*/}"; NAME="${NAME%.parset}"
+
+if command -v sha256sum >/dev/null 2>&1; then SHA256_CHECK="sha256sum --check"
+else SHA256_CHECK="shasum -a 256 --check"; fi
+
+echo "==> Verifying SHA-256 checksums..."
+(cd "$PARENT" && $SHA256_CHECK "${PARSET_DIR}/${NAME}.sha256")
+
+echo "==> Verifying PAR2 integrity..."
+(cd "$PARENT" && par2 verify -B . "${PARSET_DIR}/${NAME}.par2")
+VERIFY_EOF
+chmod +x "${OUTDIR}/verify.sh"
+
+# --- repair.sh ---
+cat > "${OUTDIR}/repair.sh" <<'REPAIR_EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+PARSET_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+PARENT="$(dirname "$PARSET_DIR")"
+NAME="${PARSET_DIR##*/}"; NAME="${NAME%.parset}"
+
+echo "==> Repairing with PAR2..."
+(cd "$PARENT" && par2 repair -B . "${PARSET_DIR}/${NAME}.par2")
+REPAIR_EOF
+chmod +x "${OUTDIR}/repair.sh"
 
 echo
 echo "==> Done."
