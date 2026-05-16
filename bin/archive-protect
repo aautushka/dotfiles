@@ -81,7 +81,7 @@ echo "==> Creating PAR2 recovery set (${REDUNDANCY}% redundancy)..."
 echo "    ${#FILES[@]} files to protect"
 # -B must be an absolute path at create time; -B . is only expanded at verify time.
 # Using absolute PARENT keeps source files and .par2 output in the same basepath tree.
-(cd "$PARENT" && par2create -r"${REDUNDANCY}" -n1 -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
+(cd "$PARENT" && par2create -r"${REDUNDANCY}" -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
 
 # --- verify.sh ---
 # Written into .parset/ so the pair is self-contained after relocation.
