@@ -186,5 +186,168 @@ step "Final verify"
 "${FILE_PARSET}/verify.sh" || fail "final verify failed"
 pass "final verify OK"
 
+########################################################################
+# TEST 3 — --cpu flag (explicit CPU path)
+########################################################################
+echo
+echo "════════════════════════════════════════"
+echo " TEST 3: --cpu flag (explicit CPU)"
+echo "════════════════════════════════════════"
+
+step "Setup"
+CPU_DIR="${WORK_DIR}/cputest"
+mkdir -p "$CPU_DIR"
+python3 -c "
+import random, string
+data = ''.join(random.choices(string.printable, k=8000))
+open('${CPU_DIR}/sample.dat', 'w').write(data)
+"
+pass "created sample.dat"
+
+step "Protect with --cpu"
+"$ARCHIVE_PROTECT" --cpu "${CPU_DIR}/sample.dat" 20
+CPU_PARSET="${CPU_DIR}/sample.dat.parset"
+[[ -d "$CPU_PARSET" ]]                       || fail "parset dir not created"
+[[ -f "${CPU_PARSET}/sample.dat.sha256" ]]   || fail "manifest not created"
+[[ -f "${CPU_PARSET}/sample.dat.par2" ]]     || fail "par2 index not created"
+pass "parset created via --cpu"
+
+step "Verify"
+"${CPU_PARSET}/verify.sh" || fail "verify failed"
+pass "verify OK"
+
+step "--gpu and --cpu mutually exclusive"
+if "$ARCHIVE_PROTECT" --gpu --cpu "${CPU_DIR}/sample.dat" 10 2>/dev/null; then
+    fail "--gpu --cpu should have errored"
+fi
+pass "correctly rejected --gpu --cpu"
+
+########################################################################
+# TEST 4 — --gpu end-to-end  (skipped if par2-gpu not in PATH)
+########################################################################
+echo
+echo "════════════════════════════════════════"
+if ! command -v par2-gpu >/dev/null 2>&1; then
+    echo " TEST 4: --gpu e2e — SKIPPED (par2-gpu not in PATH)"
+    echo "════════════════════════════════════════"
+else
+    echo " TEST 4: --gpu end-to-end"
+    echo "════════════════════════════════════════"
+
+    step "Setup"
+    GPU_DIR="${WORK_DIR}/gputest"
+    mkdir -p "$GPU_DIR"
+    python3 -c "
+import random, string
+data = ''.join(random.choices(string.printable, k=8000))
+open('${GPU_DIR}/sample.dat', 'w').write(data)
+"
+    pass "created sample.dat"
+
+    step "Protect with --gpu"
+    "$ARCHIVE_PROTECT" --gpu "${GPU_DIR}/sample.dat" 20
+    GPU_PARSET="${GPU_DIR}/sample.dat.parset"
+    [[ -d "$GPU_PARSET" ]]                       || fail "parset dir not created"
+    [[ -f "${GPU_PARSET}/sample.dat.sha256" ]]   || fail "manifest not created"
+    [[ -f "${GPU_PARSET}/sample.dat.par2" ]]     || fail "par2 index not created"
+    [[ -f "${GPU_PARSET}/verify.sh" ]]           || fail "verify.sh not created"
+    [[ -f "${GPU_PARSET}/repair.sh" ]]           || fail "repair.sh not created"
+    pass "parset created via --gpu"
+
+    step "Initial verify"
+    "${GPU_PARSET}/verify.sh" || fail "initial verify failed"
+    pass "initial verify OK"
+
+    step "Corrupt sample.dat"
+    GPU_FILE="${GPU_DIR}/sample.dat"
+    GPU_ORIG_HASH="$(hash_of "$GPU_FILE")"; GPU_ORIG_HASH="${GPU_ORIG_HASH%% *}"
+    GPU_OFFSET=$(( $(wc -c < "$GPU_FILE") / 3 ))
+    python3 -c "f=open('${GPU_FILE}','r+b'); f.seek(${GPU_OFFSET}); f.write(b'\\x00'*256); f.close()"
+    pass "file corrupted"
+
+    step "Verify detects corruption"
+    if "${GPU_PARSET}/verify.sh" 2>/dev/null; then
+        fail "verify should have failed but passed"
+    fi
+    pass "corruption detected"
+
+    step "Repair"
+    "${GPU_PARSET}/repair.sh" || fail "repair failed"
+    pass "repair completed"
+
+    step "Restored file matches original"
+    GPU_REST_HASH="$(hash_of "$GPU_FILE")"; GPU_REST_HASH="${GPU_REST_HASH%% *}"
+    [[ "$GPU_ORIG_HASH" == "$GPU_REST_HASH" ]] \
+        || fail "hash mismatch: expected $GPU_ORIG_HASH, got $GPU_REST_HASH"
+    pass "restored file matches original"
+
+    step "Final verify"
+    "${GPU_PARSET}/verify.sh" || fail "final verify failed"
+    pass "final verify OK"
+fi
+
+########################################################################
+# TEST 5 — GPU vs CPU parity + performance benchmark
+#           (skipped if par2-gpu not in PATH)
+########################################################################
+echo
+echo "════════════════════════════════════════"
+if ! command -v par2-gpu >/dev/null 2>&1; then
+    echo " TEST 5: benchmark — SKIPPED (par2-gpu not in PATH)"
+    echo "════════════════════════════════════════"
+else
+    echo " TEST 5: GPU vs CPU parity + performance"
+    echo "════════════════════════════════════════"
+
+    BENCH_SIZE_MB=128
+    step "Generate ${BENCH_SIZE_MB} MB synthetic file (two copies)"
+    BENCH_DIR="${WORK_DIR}/bench"
+    mkdir -p "${BENCH_DIR}/cpu" "${BENCH_DIR}/gpu"
+    dd if=/dev/urandom bs=$((1024*1024)) count=${BENCH_SIZE_MB} \
+        of="${BENCH_DIR}/cpu/data.bin" 2>/dev/null
+    cp "${BENCH_DIR}/cpu/data.bin" "${BENCH_DIR}/gpu/data.bin"
+    pass "${BENCH_SIZE_MB} MB file ready"
+
+    step "CPU run"
+    _T0=$(python3 -c "import time; print(time.monotonic())")
+    "$ARCHIVE_PROTECT" "${BENCH_DIR}/cpu/data.bin" 10
+    CPU_SECS=$(python3 -c "import time; print(f'{time.monotonic() - $_T0:.2f}')")
+    pass "CPU done in ${CPU_SECS}s"
+
+    step "GPU run"
+    _T0=$(python3 -c "import time; print(time.monotonic())")
+    "$ARCHIVE_PROTECT" --gpu "${BENCH_DIR}/gpu/data.bin" 10
+    GPU_SECS=$(python3 -c "import time; print(f'{time.monotonic() - $_T0:.2f}')")
+    pass "GPU done in ${GPU_SECS}s"
+
+    step "Parity: byte-for-byte comparison of all .par2 files"
+    BENCH_CPU_PS="${BENCH_DIR}/cpu/data.bin.parset"
+    BENCH_GPU_PS="${BENCH_DIR}/gpu/data.bin.parset"
+    PARITY_FAIL=0
+    for cpu_f in "${BENCH_CPU_PS}/"*.par2; do
+        fname=$(basename "$cpu_f")
+        gpu_f="${BENCH_GPU_PS}/${fname}"
+        [[ -f "$gpu_f" ]] || { fail "GPU parset missing: $fname"; PARITY_FAIL=1; break; }
+        cpu_h="$(hash_of "$cpu_f")"; cpu_h="${cpu_h%% *}"
+        gpu_h="$(hash_of "$gpu_f")"; gpu_h="${gpu_h%% *}"
+        [[ "$cpu_h" == "$gpu_h" ]] || { fail "parity mismatch: $fname  cpu=$cpu_h  gpu=$gpu_h"; PARITY_FAIL=1; break; }
+    done
+    [[ $PARITY_FAIL -eq 0 ]] && pass "all .par2 files identical byte-for-byte"
+
+    step "Performance summary"
+    SPEEDUP=$(python3 -c "
+cpu, gpu = $CPU_SECS, $GPU_SECS
+if gpu > 0:
+    print(f'{cpu/gpu:.2f}x')
+else:
+    print('N/A')
+")
+    echo "  File size:  ${BENCH_SIZE_MB} MB  (10% redundancy)"
+    echo "  CPU time:   ${CPU_SECS}s"
+    echo "  GPU time:   ${GPU_SECS}s"
+    echo "  Speedup:    ${SPEEDUP}"
+    pass "benchmark complete"
+fi
+
 echo
 echo "All tests passed."
