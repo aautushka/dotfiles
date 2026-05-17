@@ -3,11 +3,12 @@ set -euo pipefail
 
 usage() {
     cat >&2 <<EOF
-Usage: $(basename "$0") <directory|file> [redundancy%]
+Usage: $(basename "$0") [--gpu] <directory|file> [redundancy%]
 
 Creates a SHA-256 manifest and PAR2 recovery set for archival.
 Output goes to <name>.parset/ alongside the target.
 
+  --gpu           Use Metal GPU acceleration (requires par2-gpu in PATH)
   directory|file  Read-only archive directory or single file to protect
   redundancy%     PAR2 redundancy level 1-100 (default: 10)
 
@@ -67,7 +68,17 @@ if buf:
 "
 }
 
-[[ $# -lt 1 || "${1:-}" == -h || "${1:-}" == --help ]] && usage
+USE_GPU=0
+POSITIONAL=()
+for _arg in "$@"; do
+    case "$_arg" in
+        -h|--help) usage ;;
+        --gpu)     USE_GPU=1 ;;
+        *)         POSITIONAL+=("$_arg") ;;
+    esac
+done
+set -- "${POSITIONAL[@]+"${POSITIONAL[@]}"}"
+[[ $# -lt 1 ]] && usage
 
 _TSTART=$SECONDS
 TARGET="$1"
@@ -78,8 +89,15 @@ REDUNDANCY="${2:-10}"
 [[ "$REDUNDANCY" =~ ^[1-9][0-9]*$ ]] || die "redundancy must be a positive integer, got: $REDUNDANCY"
 [[ "$REDUNDANCY" -le 100 ]] || die "redundancy must be <= 100, got: $REDUNDANCY"
 
-command -v par2 >/dev/null 2>&1 \
-    || die "'par2' not found — install with: brew install par2"
+if [[ $USE_GPU -eq 1 ]]; then
+    command -v par2-gpu >/dev/null 2>&1 \
+        || die "'par2-gpu' not found — build: cd /path/to/par2cmdline && ./configure --enable-metal && make && sudo make install"
+    PAR2_CREATE=(par2-gpu create --gpu)
+else
+    command -v par2 >/dev/null 2>&1 \
+        || die "'par2' not found — install with: brew install par2"
+    PAR2_CREATE=(par2 create)
+fi
 
 if command -v sha256sum >/dev/null 2>&1; then
     SHA256_CMD=(sha256sum)
@@ -140,6 +158,7 @@ echo "Redundancy: ${REDUNDANCY}%"
 echo "Files:      ${FILE_COUNT}"
 echo "Bytes:      ${TOTAL_BYTES}"
 echo "Blocks:     ${BLOCK_COUNT:-2000 (par2 default)}"
+echo "Backend:    $([[ $USE_GPU -eq 1 ]] && echo 'par2-gpu (Metal GPU)' || echo 'par2 (CPU)')"
 
 if [[ -d "$OUTDIR" ]]; then
     die "'$OUTDIR' already exists — delete it first: rm -rf \"${OUTDIR}\""
@@ -159,9 +178,9 @@ echo "==> Creating PAR2 recovery set (${REDUNDANCY}% redundancy)..."
 # Single-file mode passes the one file explicitly; ARG_MAX is not a concern.
 _T=$SECONDS
 if [[ -d "$TARGET" ]]; then
-    (cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -t"${PAR2_THREADS}" -T4 -B "${PARENT}" -R "${BASENAME}.parset/${BASENAME}.par2" "${BASENAME}") 2>&1 | _par2_filter
+    (cd "$PARENT" && "${PAR2_CREATE[@]}" -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -t"${PAR2_THREADS}" -T4 -B "${PARENT}" -R "${BASENAME}.parset/${BASENAME}.par2" "${BASENAME}") 2>&1 | _par2_filter
 else
-    (cd "$PARENT" && par2create -r"${REDUNDANCY}" ${BLOCK_COUNT:+-b"${BLOCK_COUNT}"} -t"${PAR2_THREADS}" -T4 -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}") 2>&1 | _par2_filter
+    (cd "$PARENT" && "${PAR2_CREATE[@]}" -r"${REDUNDANCY}" ${BLOCK_COUNT:+-b"${BLOCK_COUNT}"} -t"${PAR2_THREADS}" -T4 -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}") 2>&1 | _par2_filter
 fi
 echo
 echo "    done in $(_fmt_dur $(( SECONDS - _T )))"
