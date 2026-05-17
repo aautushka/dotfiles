@@ -65,18 +65,32 @@ FILE_COUNT=${#FILES[@]}
 # largest file, padding every small file to that size and ballooning recovery data.
 # Using total_bytes / 512KB gives block_size ≈ 512KB regardless of file count mix.
 TOTAL_BYTES=$(cd "$PARENT" && printf '%s\0' "${FILES[@]}" | xargs -0 stat -f '%z' | awk '{s+=$1} END {print int(s)}')
-TARGET_BLOCK_SIZE=$(( 512 * 1024 ))
-COMPUTED_COUNT=$(( (TOTAL_BYTES + TARGET_BLOCK_SIZE - 1) / TARGET_BLOCK_SIZE ))
-# Must be at least file_count (par2 requires ≥1 block per file) and at most 32768.
-BLOCK_COUNT=$(( COMPUTED_COUNT > FILE_COUNT ? COMPUTED_COUNT : FILE_COUNT ))
-BLOCK_COUNT=$(( BLOCK_COUNT > 32768 ? 32768 : BLOCK_COUNT ))
+
+# Block count strategy differs by mode:
+# - Directory: target ~512 KB blocks to avoid padding waste. With many small files,
+#   large block_size causes par2 to pad each file to the block boundary — a 1 MB
+#   file in a 52 MB block wastes 51 MB of Reed-Solomon work. Cap at 32768.
+# - Single file: padding is at most one block regardless of size, so use par2's
+#   default of 2000 blocks (8.5 MB blocks for 17 GB). 16× less RS work than 32768.
+if [[ -d "$TARGET" ]]; then
+    TARGET_BLOCK_SIZE=$(( 512 * 1024 ))
+    COMPUTED_COUNT=$(( (TOTAL_BYTES + TARGET_BLOCK_SIZE - 1) / TARGET_BLOCK_SIZE ))
+    BLOCK_COUNT=$(( COMPUTED_COUNT > FILE_COUNT ? COMPUTED_COUNT : FILE_COUNT ))
+    BLOCK_COUNT=$(( BLOCK_COUNT > 32768 ? 32768 : BLOCK_COUNT ))
+else
+    BLOCK_COUNT=""  # use par2 default (2000)
+fi
+
+# Use all available logical CPUs; par2cmdline-turbo detects them but may not
+# default to using all, depending on how OpenMP support was compiled in.
+PAR2_THREADS=$(sysctl -n hw.logicalcpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 
 echo "Target:     $TARGET"
 echo "Output:     $OUTDIR"
 echo "Redundancy: ${REDUNDANCY}%"
 echo "Files:      ${FILE_COUNT}"
 echo "Bytes:      ${TOTAL_BYTES}"
-echo "Blocks:     ${BLOCK_COUNT}"
+echo "Blocks:     ${BLOCK_COUNT:-2000 (par2 default)}"
 
 if [[ -d "$OUTDIR" ]]; then
     die "'$OUTDIR' already exists — delete it first: rm -rf \"${OUTDIR}\""
@@ -95,9 +109,9 @@ echo "==> Creating PAR2 recovery set (${REDUNDANCY}% redundancy)..."
 # is hit at ~18k files if all paths are passed as arguments.
 # Single-file mode passes the one file explicitly; ARG_MAX is not a concern.
 if [[ -d "$TARGET" ]]; then
-    (cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -B "${PARENT}" -R "${BASENAME}.parset/${BASENAME}.par2" "${BASENAME}")
+    (cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -t"${PAR2_THREADS}" -T4 -B "${PARENT}" -R "${BASENAME}.parset/${BASENAME}.par2" "${BASENAME}")
 else
-    (cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
+    (cd "$PARENT" && par2create -r"${REDUNDANCY}" ${BLOCK_COUNT:+-b"${BLOCK_COUNT}"} -t"${PAR2_THREADS}" -T4 -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
 fi
 
 # --- SHA-256 manifest (fast — after par2 so interrupting par2 doesn't waste time here) ---
