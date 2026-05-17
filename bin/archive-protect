@@ -204,6 +204,25 @@ echo "==> Repairing with PAR2..."
 REPAIR_EOF
 chmod +x "${OUTDIR}/repair.sh"
 
+# Mark .parset for Finder: add a "parset" tag and set the bundle bit so it
+# sorts/looks distinct from data directories (gray dot, appears as a package).
+_mark_parset_for_finder() {
+    local dir="$1"
+    # Finder tag "parset" with gray color (\n1 suffix encodes gray in macOS tags).
+    local _tags_hex
+    _tags_hex=$(python3 -c "
+import plistlib, binascii
+data = plistlib.dumps(['parset\n1'], fmt=plistlib.FMT_BINARY)
+print(binascii.hexlify(data).decode())
+") && xattr -wx com.apple.metadata:_kMDItemUserTags "$_tags_hex" "$dir" 2>/dev/null || true
+    # Bundle bit (kHasBundle = 0x2000) in FinderInfo frFlags (bytes 8–9, big-endian).
+    # 32 zero bytes with 0x2000 at offset 8.
+    xattr -wx com.apple.FinderInfo \
+        "0000000000000000200000000000000000000000000000000000000000000000" \
+        "$dir" 2>/dev/null || true
+}
+_mark_parset_for_finder "$OUTDIR"
+
 echo
 echo "==> Done in $(_fmt_dur $(( SECONDS - _TSTART )))."
 ls -lh "$OUTDIR"

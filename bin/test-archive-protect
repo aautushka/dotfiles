@@ -42,6 +42,10 @@ PARSET="${WORK_DIR}/test-archive.parset"
 [[ -f "${PARSET}/test-archive.par2" ]]   || fail "par2 index not created"
 [[ -f "${PARSET}/verify.sh" ]]           || fail "verify.sh not created"
 [[ -f "${PARSET}/repair.sh" ]]           || fail "repair.sh not created"
+xattr -l "$PARSET" 2>/dev/null | grep -q "_kMDItemUserTags" \
+    || fail "Finder tag xattr not set on parset dir"
+xattr -l "$PARSET" 2>/dev/null | grep -q "FinderInfo" \
+    || fail "FinderInfo (bundle bit) xattr not set on parset dir"
 pass "parset created"
 
 # ── 3. initial verify ────────────────────────────────────────────────────────
@@ -124,6 +128,10 @@ FILE_PARSET="${FILE_DIR}/archive.zip.parset"
 [[ -f "${FILE_PARSET}/archive.zip.par2" ]]       || fail "par2 index not created"
 [[ -f "${FILE_PARSET}/verify.sh" ]]              || fail "verify.sh not created"
 [[ -f "${FILE_PARSET}/repair.sh" ]]              || fail "repair.sh not created"
+xattr -l "$FILE_PARSET" 2>/dev/null | grep -q "_kMDItemUserTags" \
+    || fail "Finder tag xattr not set on parset dir"
+xattr -l "$FILE_PARSET" 2>/dev/null | grep -q "FinderInfo" \
+    || fail "FinderInfo (bundle bit) xattr not set on parset dir"
 pass "parset created"
 
 # ── 3. initial verify ────────────────────────────────────────────────────────
