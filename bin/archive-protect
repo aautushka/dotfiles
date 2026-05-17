@@ -19,8 +19,52 @@ EOF
 
 die() { echo "error: $*" >&2; exit 1; }
 
+_fmt_dur() {
+    local s=$(( $1 ))
+    (( s < 60 ))   && { printf '%ds' $s; return; }
+    (( s < 3600 )) && { printf '%dm %02ds' $((s/60)) $((s%60)); return; }
+    printf '%dh %02dm' $((s/3600)) $(( (s%3600)/60 ))
+}
+
+# Filter par2's \r-based progress lines and inject ETA. Reads from stdin.
+_par2_filter() {
+    python3 -u -c "
+import sys, re, time
+start = time.time()
+buf = ''
+def fmt(s):
+    s = max(0, int(s))
+    if s < 60:   return f'{s}s'
+    if s < 3600: return f'{s//60}m {s%60:02d}s'
+    return f'{s//3600}h {(s%3600)//60:02d}m'
+while True:
+    b = sys.stdin.buffer.read(1)
+    if not b: break
+    c = b.decode('utf-8', errors='replace')
+    if c == '\r':
+        m = re.search(r'(\d+\.?\d*)%', buf)
+        if m:
+            pct = float(m.group(1))
+            elapsed = time.time() - start
+            eta_str = f' | ETA {fmt(elapsed*(100-pct)/pct)}' if pct > 0.5 else ''
+            sys.stdout.write(f'\r{buf.strip()}{eta_str}   ')
+            sys.stdout.flush()
+        else:
+            print(buf)
+        buf = ''
+    elif c == '\n':
+        print(buf)
+        buf = ''
+    else:
+        buf += c
+if buf:
+    print(buf)
+"
+}
+
 [[ $# -lt 1 || "${1:-}" == -h || "${1:-}" == --help ]] && usage
 
+_TSTART=$SECONDS
 TARGET="$1"
 REDUNDANCY="${2:-10}"
 
@@ -108,18 +152,22 @@ echo "==> Creating PAR2 recovery set (${REDUNDANCY}% redundancy)..."
 # recurses the entire PARENT. This also sidesteps ARG_MAX (~1 MB on macOS) which
 # is hit at ~18k files if all paths are passed as arguments.
 # Single-file mode passes the one file explicitly; ARG_MAX is not a concern.
+_T=$SECONDS
 if [[ -d "$TARGET" ]]; then
-    (cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -t"${PAR2_THREADS}" -T4 -B "${PARENT}" -R "${BASENAME}.parset/${BASENAME}.par2" "${BASENAME}")
+    (cd "$PARENT" && par2create -r"${REDUNDANCY}" -b"${BLOCK_COUNT}" -t"${PAR2_THREADS}" -T4 -B "${PARENT}" -R "${BASENAME}.parset/${BASENAME}.par2" "${BASENAME}") 2>&1 | _par2_filter
 else
-    (cd "$PARENT" && par2create -r"${REDUNDANCY}" ${BLOCK_COUNT:+-b"${BLOCK_COUNT}"} -t"${PAR2_THREADS}" -T4 -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}")
+    (cd "$PARENT" && par2create -r"${REDUNDANCY}" ${BLOCK_COUNT:+-b"${BLOCK_COUNT}"} -t"${PAR2_THREADS}" -T4 -B "${PARENT}" "${BASENAME}.parset/${BASENAME}.par2" "${FILES[@]}") 2>&1 | _par2_filter
 fi
+echo
+echo "    done in $(_fmt_dur $(( SECONDS - _T )))"
 
 # --- SHA-256 manifest (fast — after par2 so interrupting par2 doesn't waste time here) ---
 echo
 echo "==> Creating SHA-256 manifest..."
 # printf|xargs batches filenames to stay under ARG_MAX — safe for 100k+ files.
+_T=$SECONDS
 (cd "$PARENT" && printf '%s\0' "${FILES[@]}" | xargs -0 "${SHA256_CMD[@]}") > "$MANIFEST"
-echo "    ${FILE_COUNT} files checksummed"
+echo "    ${FILE_COUNT} files checksummed in $(_fmt_dur $(( SECONDS - _T )))"
 echo "    Written: $MANIFEST"
 
 # --- verify.sh ---
@@ -157,5 +205,5 @@ REPAIR_EOF
 chmod +x "${OUTDIR}/repair.sh"
 
 echo
-echo "==> Done."
+echo "==> Done in $(_fmt_dur $(( SECONDS - _TSTART )))."
 ls -lh "$OUTDIR"
