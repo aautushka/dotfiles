@@ -31,34 +31,39 @@ _par2_filter() {
     python3 -u -c "
 import sys, re, time
 start = time.time()
-buf = ''
+buf = b''
 def fmt(s):
     s = max(0, int(s))
     if s < 60:   return f'{s}s'
     if s < 3600: return f'{s//60}m {s%60:02d}s'
     return f'{s//3600}h {(s%3600)//60:02d}m'
-while True:
-    b = sys.stdin.buffer.read(1)
-    if not b: break
-    c = b.decode('utf-8', errors='replace')
-    if c == '\r':
-        m = re.search(r'(\d+\.?\d*)%', buf)
+def flush_buf(raw, cr=False):
+    line = raw.decode('utf-8', errors='replace')
+    if cr:
+        m = re.search(r'(\d+\.?\d*)%', line)
         if m:
             pct = float(m.group(1))
             elapsed = time.time() - start
             eta_str = f' | ETA {fmt(elapsed*(100-pct)/pct)}' if pct > 0.5 else ''
-            sys.stdout.write(f'\r{buf.strip()}{eta_str}   ')
+            sys.stdout.write(f'\r{line.strip()}{eta_str}   ')
             sys.stdout.flush()
         else:
-            print(buf)
-        buf = ''
-    elif c == '\n':
-        print(buf)
-        buf = ''
+            print(line)
     else:
-        buf += c
+        print(line)
+while True:
+    b = sys.stdin.buffer.read(1)
+    if not b: break
+    if b == b'\r':
+        flush_buf(buf, cr=True)
+        buf = b''
+    elif b == b'\n':
+        flush_buf(buf, cr=False)
+        buf = b''
+    else:
+        buf += b
 if buf:
-    print(buf)
+    flush_buf(buf, cr=False)
 "
 }
 
