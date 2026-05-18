@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat >&2 <<EOF
+Usage: $(basename "$0") <file|directory>
+
+Make a file or directory read-only and immutable against accidental changes.
+Sets the user-immutable flag (chflags uchg) and removes all write
+permissions (chmod a-w), recursively for directories.
+Shows progress for large directories.
+Adds a red Finder tag for visual confirmation.
+
+On failure, automatically rolls back to fully unlocked state.
+
+To undo: archive-unlock <file|directory>
+EOF
+    exit 1
+}
+
+die() { echo "error: $*" >&2; exit 1; }
+
+[[ $# -eq 1 && "${1:-}" != -h && "${1:-}" != --help ]] || usage
+
+if [[ -d "$1" ]]; then
+    TARGET="$(cd "$1" && pwd -P)" || die "cannot resolve '$1'"
+elif [[ -f "$1" ]]; then
+    TARGET="$(cd "$(dirname "$1")" && pwd -P)/$(basename "$1")" || die "cannot resolve '$1'"
+else
+    die "'$1' is not a file or directory"
+fi
+
+# ---------------------------------------------------------------------------
+# Finder tag helpers — cosmetic, non-fatal
+# ---------------------------------------------------------------------------
+
+_tag_add_locked() {
+    python3 - "$TARGET" <<'PY' 2>/dev/null || true
+import sys, plistlib, binascii, subprocess
+path = sys.argv[1]
+try:
+    r = subprocess.run(['xattr', '-px', 'com.apple.metadata:_kMDItemUserTags', path],
+                       capture_output=True, text=True, check=True)
+    tags = plistlib.loads(bytes.fromhex(r.stdout.strip().replace(' ', '')))
+except Exception:
+    tags = []
+tag = 'locked\n6'
+if tag not in tags:
+    tags.append(tag)
+data = plistlib.dumps(tags, fmt=plistlib.FMT_BINARY)
+subprocess.run(['xattr', '-wx', 'com.apple.metadata:_kMDItemUserTags',
+                binascii.hexlify(data).decode(), path], check=True)
+PY
+}
+
+_tag_remove_locked() {
+    python3 - "$TARGET" <<'PY' 2>/dev/null || true
+import sys, plistlib, binascii, subprocess
+path = sys.argv[1]
+try:
+    r = subprocess.run(['xattr', '-px', 'com.apple.metadata:_kMDItemUserTags', path],
+                       capture_output=True, text=True, check=True)
+    tags = plistlib.loads(bytes.fromhex(r.stdout.strip().replace(' ', '')))
+except Exception:
+    tags = []
+tags = [t for t in tags if t != 'locked\n6']
+data = plistlib.dumps(tags, fmt=plistlib.FMT_BINARY)
+subprocess.run(['xattr', '-wx', 'com.apple.metadata:_kMDItemUserTags',
+                binascii.hexlify(data).decode(), path], check=True)
+PY
+}
+
+# ---------------------------------------------------------------------------
+# Rollback: on any failure, fully unlock and remove tag
+# ---------------------------------------------------------------------------
+
+_rollback() {
+    local rc=$?
+    printf '\n' >&2
+    printf '\033[1;31merror: lock failed — rolling back to unlocked state...\033[0m\n' >&2
+    local rb_ok=1
+    chflags -R nouchg "$TARGET" 2>&1 || rb_ok=0
+    chmod   -R u+w    "$TARGET" 2>&1 || rb_ok=0
+    _tag_remove_locked
+    if [[ $rb_ok -eq 1 ]]; then
+        printf '\033[1;32mRolled back: '\''%s'\'' is fully unlocked.\033[0m\n' "$TARGET" >&2
+    else
+        printf '\033[1;31mCRITICAL: rollback incomplete — '\''%s'\'' may be in a mixed state.\033[0m\n' "$TARGET" >&2
+        printf '\033[1;31mRun manually: chflags -R nouchg "%s" && chmod -R u+w "%s"\033[0m\n' "$TARGET" "$TARGET" >&2
+    fi
+    exit $rc
+}
+trap _rollback ERR
+
+printf '\033[1mLocking: %s\033[0m\n' "$TARGET"
+
+if [[ -d "$TARGET" ]]; then
+    # -------------------------------------------------------------------------
+    # Directory: process contents recursively with progress, then lock root.
+    # $TARGET itself is handled last so we can write the tag before uchg blocks
+    # xattr writes on the directory.
+    # -------------------------------------------------------------------------
+    printf '  counting files...'
+    total=$(find "$TARGET" -mindepth 1 | wc -l | tr -d ' ')
+    [[ $total -gt 0 ]] || total=1
+    printf '\r  %d files found\n' "$total"
+
+    count=0
+    while IFS= read -r -d '' f; do
+        chmod   a-w  "$f"
+        chflags uchg "$f"
+        (( ++count ))
+        if (( count % 500 == 0 )); then
+            printf '\r  %3d%%  (%d / %d files)' "$(( count * 100 / total ))" "$count" "$total"
+        fi
+    done < <(find "$TARGET" -mindepth 1 -print0)
+    printf '\r  100%%  (%d / %d files)\n' "$count" "$total"
+
+    _tag_add_locked
+    chmod   a-w  "$TARGET"
+    chflags uchg "$TARGET"
+else
+    # -------------------------------------------------------------------------
+    # Single file: tag before uchg (uchg blocks xattr writes).
+    # -------------------------------------------------------------------------
+    _tag_add_locked
+    chmod   a-w  "$TARGET"
+    chflags uchg "$TARGET"
+fi
+
+trap - ERR
+printf '\033[1;32mLocked: %s\033[0m\n' "$TARGET"
+printf '\033[1;33mTo unlock: archive-unlock "%s"\033[0m\n' "$TARGET"
